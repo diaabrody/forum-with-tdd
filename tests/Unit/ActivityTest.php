@@ -70,14 +70,14 @@ class ActivityTest extends CustomTestCase
             get_class(auth()->user()->activities->first()));
     }
 
-    public function test_feeds_on_activity(){
-        $this->login();
-        $thread = create('App\Thread' , [
-            'user_id'=>auth()->id()
-        ] ,2);
-        Activity::first()->update('created_at' , Carbon::now()->subWeek());
-       $feed= Activity::feed(auth()->user());
-//       $this->assertTrue();
-
-    }
+//    public function test_feeds_on_activity(){
+//        $this->login();
+//        $thread = create('App\Thread' , [
+//            'user_id'=>auth()->id()
+//        ] ,2);
+//        Activity::first()->update('created_at' , Carbon::now()->subWeek());
+//       $feed= Activity::feed(auth()->user());
+////       $this->assertTrue();
+//
+//    }
 }

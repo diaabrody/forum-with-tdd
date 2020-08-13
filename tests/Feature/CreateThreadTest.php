@@ -81,33 +81,6 @@ class CreateThreadTest extends CustomTestCase
         $this->delete( $thread->path())
             ->assertStatus(403);
     }
-    public  function test_authorize_user_can_delete_their_replies(){
-        $this->login();
-        $replay=create('App\Replay'  , ['user_id' =>auth()->user()->id]);
-        $this->delete("replay/{$replay->id}");
-        $this->assertDatabaseMissing('replays' , ['id'=>$replay->id]);
-    }
-
-    public  function test_un_authorize_user_cannot_delete_replies(){
-        $this->login();
-        $replay=create('App\Replay');
-        $this->delete("replay/{$replay->id}")
-        ->assertStatus(403);
-    }
-
-    public  function test_authorize_user_can_update_their_replies(){
-        $this->login();
-        $replay=create('App\Replay'  , ['user_id' =>auth()->user()->id]);
-        $this->patch("/replay/{$replay->id}" , ['body'=>'test body']);
-        $this->assertDatabaseHas('replays' , ['id'=>$replay->id , 'body'=>'test body']);
-    }
-    public  function test_unauthorize_user_cannot_update_replies(){
-        $this->login();
-        $replay=create('App\Replay');
-        $this->patch("/replay/{$replay->id}" , ['body'=>'test body'])
-        ->assertStatus(403);
-    }
-
 
 
 

@@ -22,6 +22,14 @@ class Replay extends Model
         self::addGlobalScope('favouritesCount' , function ($builder){
             $builder->withCount('favourites');
         });
+        static::created(function($reply){
+            $reply->thread->increment('replies_count');
+        });
+
+        static::deleted(function ($reply){
+            if ($reply->thread)
+                $reply->thread->decrement('replies_count');
+        });
     }
 
     //

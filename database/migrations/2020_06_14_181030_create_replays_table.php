@@ -19,6 +19,7 @@ class CreateReplaysTable extends Migration
             $table->foreignId('user_id');
             $table->foreignId('thread_id');
             $table->timestamps();
+
         });
     }
 
