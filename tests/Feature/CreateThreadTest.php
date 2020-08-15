@@ -38,16 +38,16 @@ class CreateThreadTest extends CustomTestCase
         $this->post("/threads" , $thread->toArray())
             ->assertRedirect('/login');
     }
-    public   function test_authenticated_user_can_create_thread()
-    {
-    //        $this->login();
-    //        $thread = make(Thread::class);
-    //        $response=$this->post("/threads" , $thread->toArray());
-    //        dd($response->headers->has('Location'));
-    //        $this->get('')
-    //            ->assertStatus(200)
-    //            ->assertSee($thread->title);
-    }
+//    public   function test_authenticated_user_can_create_thread()
+//    {
+//            $this->login();
+//            $thread = make(Thread::class);
+//            $response=$this->post("/threads" , $thread->toArray());
+//            dd($response->headers->has('Location'));
+//            $this->get('')
+//                ->assertStatus(200)
+//                ->assertSee($thread->title);
+//    }
     public function test_a_thread_requires(){
         $this->login();
         $this->post("/threads" ,[])

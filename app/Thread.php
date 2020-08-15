@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Events\ThreadHasNewReply;
 use App\Filters\ThreadFilters;
 use App\Notifications\ThreadUpdated;
 use Illuminate\Database\Eloquent\Model;
@@ -54,13 +55,7 @@ class Thread extends Model
     public function addReplay($replay)
     {
        $replay= $this->replies()->create($replay);
-
-       $this->subscriptions->filter(function ($sub) use($replay){
-           return $replay->user_id !=$sub->user_id;
-       })->each(function ($sub)use($replay){
-           $sub->user->notify(new ThreadUpdated($replay  , $this));
-       });
-
+       event(new ThreadHasNewReply($this ,$replay));
        return $replay;
     }
 

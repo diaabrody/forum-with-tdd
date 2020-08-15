@@ -80,6 +80,5 @@
                 console.log(e);
             }
         }
-
     }
 </script>
