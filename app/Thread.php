@@ -86,6 +86,8 @@ class Thread extends Model
             ->exists();
     }
 
+
+
     /**
      *
      * Apply all relevant thread filters.
