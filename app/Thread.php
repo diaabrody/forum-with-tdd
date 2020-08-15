@@ -3,6 +3,7 @@
 namespace App;
 
 use App\Filters\ThreadFilters;
+use App\Notifications\ThreadUpdated;
 use Illuminate\Database\Eloquent\Model;
 
 class Thread extends Model
@@ -11,6 +12,7 @@ class Thread extends Model
     protected $guarded = [];
     //
     protected $with = ['channel'];
+    protected $appends=['isSubscribedTo'];
 
     public static function boot()
     {
@@ -51,7 +53,37 @@ class Thread extends Model
 
     public function addReplay($replay)
     {
-       return $this->replies()->create($replay);
+       $replay= $this->replies()->create($replay);
+
+       $this->subscriptions->filter(function ($sub) use($replay){
+           return $replay->user_id !=$sub->user_id;
+       })->each(function ($sub)use($replay){
+           $sub->user->notify(new ThreadUpdated($replay  , $this));
+       });
+
+       return $replay;
+    }
+
+    public function subscriptions()
+    {
+        return $this->hasMany('App\ThreadSubscription');
+    }
+
+    public function subscribe($userId = null){
+        $this->subscriptions()->create([
+            "user_id"=>$userId?:auth()->id()
+        ]);
+    }
+
+    public function unsubscribe($userId = null){
+        $this->subscriptions()
+            ->where('user_id' , $userId?:auth()->id())
+            ->delete();
+    }
+    public function getIsSubscribedToAttribute(){
+       return $this->subscriptions()
+            ->where('user_id' , auth()->id())
+            ->exists();
     }
 
     /**

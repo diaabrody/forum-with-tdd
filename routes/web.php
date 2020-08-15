@@ -37,6 +37,11 @@ Route::patch( '/replay/{replay}', 'ReplayController@update');
 
 Route::delete("/replies/{replay}/favourites" , "FavouriteController@destroy");
 
+Route::post('/threads/{channel}/{thread}/subscriptions' , 'SubscriptionController@store');
+
+Route::delete('/threads/{channel}/{thread}/subscriptions' , 'SubscriptionController@destroy');
+
+
 
 
 Auth::routes();

@@ -50,6 +50,33 @@ class ThreadTest extends CustomTestCase
        $this->assertTrue($channel->threads->contains($thread));
     }
 
+    public function test_a_thread_can_subscribe_to(){
+        $this->login();
+        $thread=create('App\Thread');
+        $thread->subscribe();
+        // get user sub
+        $this->assertCount(1 ,
+            $thread->subscriptions()
+                ->where('user_id' , auth()->id())->get());
+
+    }
+
+    public function test_a_thread_can_unsubscribe_to(){
+        $this->login();
+        $thread=create('App\Thread');
+        $thread->subscribe();
+        // get user sub
+        $this->assertCount(1 ,
+            $thread->subscriptions()
+                ->where('user_id' , auth()->id())->get());
+
+        $thread->unsubscribe();
+        $this->assertCount(0 ,
+            $thread->subscriptions()
+                ->where('user_id' , auth()->id())->get());
+    }
+
+
 
 
 

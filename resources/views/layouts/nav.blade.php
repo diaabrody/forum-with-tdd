@@ -10,8 +10,16 @@
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <!-- Left Side Of Navbar -->
             <ul class="navbar-nav mr-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url('/threads ') }}">threads</a>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        threads
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                       <a class="dropdown-item" href="{{ url('/threads ') }}">all</a>
+                        <a class="dropdown-item" href="{{ url('/threads?popular=1') }}">popular</a>
+                        <a class="dropdown-item" href="{{ url('/threads?unanswered=1') }}">unanswered</a>
+
+                    </div>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url('/threads/create') }}">New Thread</a>
