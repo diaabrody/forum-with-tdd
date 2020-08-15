@@ -46,4 +46,13 @@ class User extends Authenticatable
     public function activities(){
         return $this->hasMany(Activity::class);
     }
+    public function getNotifications($user=null){
+        $user= $user?:auth()->user();
+        return $user->notifications;
+    }
+
+    public function markNotificationAsRead($notification,$user=null){
+        $user= $user?:auth()->user();
+        return $user->notifications()->findOrFail($notification)->markAsRead();
+    }
 }

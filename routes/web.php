@@ -41,7 +41,9 @@ Route::post('/threads/{channel}/{thread}/subscriptions' , 'SubscriptionControlle
 
 Route::delete('/threads/{channel}/{thread}/subscriptions' , 'SubscriptionController@destroy');
 
-Route::delete("/profiles/{user}/{notification}" , 'UserNotificationsController@destroy');
+Route::delete("/profiles/{user:name}/notifications/{notification}" , 'UserNotificationsController@destroy');
+Route::get("/profiles/{user:name}/notifications" , 'UserNotificationsController@index');
+
 
 
 
