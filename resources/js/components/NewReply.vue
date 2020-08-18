@@ -2,12 +2,24 @@
    <div class="page">
 <!--    @if (auth()->check())-->
        <div v-if="signedIn">
+         <form>
            <div class="form-group">
-              <textarea name="body" id="body" class="form-control"
-                        v-model="body" placeholder="Have something to say?" rows="5"></textarea>
-           </div>
-           <button type="button" class="btn btn-primary" @click="addReply">Post</button>
+              <textarea name="body"
+                        id="body"
+                        class="form-control"
+                        v-model="body"
+                        placeholder="Have something to say?"
+                        rows="5"
+                        required
+                        @input="error = false"
+              ></textarea>
+               <span class="help-block text-danger" v-if="error">this field is reuired</span>
 
+
+           </div>
+
+           <button type="submit" class="btn btn-primary" @click.prevent="addReply">Post</button>
+          </form>
        </div>
        <div v-else>
            <p class="text-center">Please <a href="/login">sign in</a> to participate in this
@@ -22,7 +34,8 @@
         props:[],
         data() {
             return {
-                body:''
+                body:'' ,
+                error:false
 
             }
         },
@@ -39,7 +52,11 @@
                             this.$emit('created' , data);
                             this.body='';
                         })
-                        .catch(()=>{});
+                        .catch(({response})=>{
+                            flash(response.data ,'danger');
+                        });
+                }else{
+                    this.error = true;
                 }
 
             }

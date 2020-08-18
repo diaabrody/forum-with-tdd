@@ -2,12 +2,23 @@
 
 namespace App\Http\Controllers;
 
+use App\interceptions\Spam;
 use App\Replay;
 use App\Thread;
 use Illuminate\Http\Request;
+use mysql_xdevapi\Exception;
+use Tests\Feature\SpamTest;
 
 class ReplayController extends Controller
 {
+
+    private $spam;
+
+    public function __construct(Spam $spam)
+    {
+        $this->spam = $spam;
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -38,14 +49,15 @@ class ReplayController extends Controller
      */
     public function store(Request $request, $channe_id,Thread $thread)
     {
-        $this->validate($request ,[
-            'body'=>'required'
-        ]);
-
-        $thread = $thread->addReplay([
-            'body'=>$request->input('body') ,
-            'user_id'=>auth()->user()->id
-        ]);
+        try {
+            $this->validateReply();
+            $thread = $thread->addReplay([
+                'body'=>$request->input('body') ,
+                'user_id'=>auth()->user()->id
+            ]);
+        }catch (\Exception $e){
+            return response('cannot save ur reply in this time',400);
+        }
         if ($request->expectsJson()){
            return response($thread->load('owner') , 201);
         }
@@ -84,15 +96,14 @@ class ReplayController extends Controller
      */
     public function update(Request $request, Replay $replay)
     {
-        $this->authorize('update' , $replay);
-        $data=$request->validate([
-            'body'=>'required|string'
-        ]);
+
         try {
+            $this->authorize('update' , $replay);
+            $data=$this->validateReply();
             $replay->update($data);
 
         }catch (\Exception $e){
-            abort('500' , $e->getMessage());
+            return response('we cannot save ur reply in this time' , 400);
         }
 
         return response([] ,200);
@@ -121,5 +132,18 @@ class ReplayController extends Controller
 
         return back();
         //
+    }
+
+    /**
+     * @return array
+     * @throws \Illuminate\Validation\ValidationException
+     */
+    public function validateReply(): array
+    {
+       $data= $this->validate(request(), [
+            'body' => 'required'
+        ]);
+        $this->spam->detect(request('body'));
+        return $data;
     }
 }

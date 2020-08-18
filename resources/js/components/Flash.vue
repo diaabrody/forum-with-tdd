@@ -1,29 +1,35 @@
 <template>
-        <div class=" alert alert-success alert-flash" role="alert" v-show="show">
-            {{body}}
+        <div class=" alert alert-flash"
+             role="alert"
+             v-show="show"
+             v-text="body"
+             :class=" 'alert-'+type"
+        >
         </div>
 </template>
 
 <script>
     export default {
-        props:['message'],
+        props:['data'],
         data() {
             return {
                 body: '',
+                type:'success',
                 show: false
             }
         },
         created() {
-            window.events.$on('flash' , (messagae)=>{
-                this.display(messagae);
+            window.events.$on('flash' , (data)=>{
+                this.display(data);
             });
-            if(this.message){
-                this.display(this.message);
+            if(this.data){
+                this.display(this.data);
             }
         },
         methods:{
-            display(message){
+            display({message , type}){
                 this.body = message;
+                this.type = type;
                 this.show = true
                 this.hide();
             },

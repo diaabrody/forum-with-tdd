@@ -84,8 +84,8 @@
                     }).then(()=>{
                         this.editing = false ;
                         flash('replay updated !');
-                    }).then((error)=>{
-                        console.log(error);
+                    }).catch(({response})=>{
+                       flash(response.data , 'danger');
                     });
                 }
             },

@@ -15,8 +15,8 @@ window.Vue.prototype.authorize = function(handler){
 
 window.events = new Vue();
 
-window.flash = function(message){
-    events.$emit('flash' ,message);
+window.flash = function(message , type){
+    events.$emit('flash' ,{type , message});
 }
 /**
  * The following block of code may be used to automatically register your

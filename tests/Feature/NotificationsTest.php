@@ -35,7 +35,6 @@ class NotificationsTest extends CustomTestCase
 
         $this->assertCount(0 , auth()->user()->fresh()->notifications);
 
-
         $thread->addReplay([
             'user_id'=>create('App\User')->id,
             'body'=>'hi'

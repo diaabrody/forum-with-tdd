@@ -1991,28 +1991,36 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
-  props: ['message'],
+  props: ['data'],
   data: function data() {
     return {
       body: '',
+      type: 'success',
       show: false
     };
   },
   created: function created() {
     var _this = this;
 
-    window.events.$on('flash', function (messagae) {
-      _this.display(messagae);
+    window.events.$on('flash', function (data) {
+      _this.display(data);
     });
 
-    if (this.message) {
-      this.display(this.message);
+    if (this.data) {
+      this.display(this.data);
     }
   },
   methods: {
-    display: function display(message) {
+    display: function display(_ref) {
+      var message = _ref.message,
+          type = _ref.type;
       this.body = message;
+      this.type = type;
       this.show = true;
       this.hide();
     },
@@ -2056,11 +2064,24 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   props: [],
   data: function data() {
     return {
-      body: ''
+      body: '',
+      error: false
     };
   },
   created: function created() {},
@@ -2077,7 +2098,12 @@ __webpack_require__.r(__webpack_exports__);
           _this.$emit('created', data);
 
           _this.body = '';
-        })["catch"](function () {});
+        })["catch"](function (_ref2) {
+          var response = _ref2.response;
+          flash(response.data, 'danger');
+        });
+      } else {
+        this.error = true;
       }
     }
   },
@@ -2339,8 +2365,9 @@ __webpack_require__.r(__webpack_exports__);
         }).then(function () {
           _this2.editing = false;
           flash('replay updated !');
-        }).then(function (error) {
-          console.log(error);
+        })["catch"](function (_ref) {
+          var response = _ref.response;
+          flash(response.data, 'danger');
         });
       }
     },
@@ -61011,17 +61038,15 @@ var render = function() {
   var _vm = this
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
-  return _c(
-    "div",
-    {
-      directives: [
-        { name: "show", rawName: "v-show", value: _vm.show, expression: "show" }
-      ],
-      staticClass: " alert alert-success alert-flash",
-      attrs: { role: "alert" }
-    },
-    [_vm._v("\n    " + _vm._s(_vm.body) + "\n")]
-  )
+  return _c("div", {
+    directives: [
+      { name: "show", rawName: "v-show", value: _vm.show, expression: "show" }
+    ],
+    staticClass: " alert alert-flash",
+    class: "alert-" + _vm.type,
+    attrs: { role: "alert" },
+    domProps: { textContent: _vm._s(_vm.body) }
+  })
 }
 var staticRenderFns = []
 render._withStripped = true
@@ -61048,44 +61073,63 @@ var render = function() {
   return _c("div", { staticClass: "page" }, [
     _vm.signedIn
       ? _c("div", [
-          _c("div", { staticClass: "form-group" }, [
-            _c("textarea", {
-              directives: [
-                {
-                  name: "model",
-                  rawName: "v-model",
-                  value: _vm.body,
-                  expression: "body"
-                }
-              ],
-              staticClass: "form-control",
-              attrs: {
-                name: "body",
-                id: "body",
-                placeholder: "Have something to say?",
-                rows: "5"
-              },
-              domProps: { value: _vm.body },
-              on: {
-                input: function($event) {
-                  if ($event.target.composing) {
-                    return
+          _c("form", [
+            _c("div", { staticClass: "form-group" }, [
+              _c("textarea", {
+                directives: [
+                  {
+                    name: "model",
+                    rawName: "v-model",
+                    value: _vm.body,
+                    expression: "body"
                   }
-                  _vm.body = $event.target.value
+                ],
+                staticClass: "form-control",
+                attrs: {
+                  name: "body",
+                  id: "body",
+                  placeholder: "Have something to say?",
+                  rows: "5",
+                  required: ""
+                },
+                domProps: { value: _vm.body },
+                on: {
+                  input: [
+                    function($event) {
+                      if ($event.target.composing) {
+                        return
+                      }
+                      _vm.body = $event.target.value
+                    },
+                    function($event) {
+                      _vm.error = false
+                    }
+                  ]
                 }
-              }
-            })
-          ]),
-          _vm._v(" "),
-          _c(
-            "button",
-            {
-              staticClass: "btn btn-primary",
-              attrs: { type: "button" },
-              on: { click: _vm.addReply }
-            },
-            [_vm._v("Post")]
-          )
+              }),
+              _vm._v(" "),
+              _vm.error
+                ? _c("span", { staticClass: "help-block text-danger" }, [
+                    _vm._v("this field is reuired")
+                  ])
+                : _vm._e()
+            ]),
+            _vm._v(" "),
+            _c(
+              "button",
+              {
+                staticClass: "btn btn-primary",
+                attrs: { type: "submit" },
+                on: {
+                  click: function($event) {
+                    $event.preventDefault()
+                    return _vm.addReply($event)
+                  }
+                }
+              },
+              [_vm._v("Post")]
+            )
+          ])
         ])
       : _c("div", [_vm._m(0)])
   ])
@@ -73656,8 +73700,11 @@ window.Vue.prototype.authorize = function (handler) {
 
 window.events = new Vue();
 
-window.flash = function (message) {
-  events.$emit('flash', message);
+window.flash = function (message, type) {
+  events.$emit('flash', {
+    type: type,
+    message: message
+  });
 };
 /**
  * The following block of code may be used to automatically register your

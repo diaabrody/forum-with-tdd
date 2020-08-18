@@ -82,5 +82,14 @@ class ParticipateInThreadsTest extends CustomTestCase
             ->assertStatus(403);
     }
 
+    public function test_detection_of_spam_while_when_user_add_new_reply(){
+        $this->withoutExceptionHandling();
+        $this->login();
+        $thread=create(Thread::class);
+        $replay=make(Replay::class , ['body'=>'bad comment']);
+        $this->expectException(\Exception::class);
+        $this->post("{$thread->path()}/replies" , $replay->toArray());
+    }
+
 
 }
