@@ -2098,9 +2098,10 @@ __webpack_require__.r(__webpack_exports__);
           _this.$emit('created', data);
 
           _this.body = '';
+          flash('added');
         })["catch"](function (_ref2) {
           var response = _ref2.response;
-          flash(response.data, 'danger');
+          flash(response.data.message, 'danger');
         });
       } else {
         this.error = true;
@@ -2367,7 +2368,7 @@ __webpack_require__.r(__webpack_exports__);
           flash('replay updated !');
         })["catch"](function (_ref) {
           var response = _ref.response;
-          flash(response.data, 'danger');
+          flash(response.data.message, 'danger');
         });
       }
     },
@@ -73700,7 +73701,8 @@ window.Vue.prototype.authorize = function (handler) {
 
 window.events = new Vue();
 
-window.flash = function (message, type) {
+window.flash = function (message) {
+  var type = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'success';
   events.$emit('flash', {
     type: type,
     message: message

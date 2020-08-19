@@ -51,9 +51,10 @@
                         .then(({data})=>{
                             this.$emit('created' , data);
                             this.body='';
+                            flash('added');
                         })
                         .catch(({response})=>{
-                            flash(response.data ,'danger');
+                            flash(response.data.message ,'danger');
                         });
                 }else{
                     this.error = true;

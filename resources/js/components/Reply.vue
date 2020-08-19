@@ -85,7 +85,7 @@
                         this.editing = false ;
                         flash('replay updated !');
                     }).catch(({response})=>{
-                       flash(response.data , 'danger');
+                       flash(response.data.message , 'danger');
                     });
                 }
             },

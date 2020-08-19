@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\interceptions\Spam;
 use App\Replay;
+use App\Rules\SpamFree;
 use App\Thread;
 use Illuminate\Http\Request;
 use mysql_xdevapi\Exception;
@@ -11,13 +12,17 @@ use Tests\Feature\SpamTest;
 
 class ReplayController extends Controller
 {
+    private   $spamFree;
 
-    private $spam;
-
-    public function __construct(Spam $spam)
+    /**
+     * ReplayController constructor.
+     * @param $spam
+     */
+    public function __construct(SpamFree $spamFree)
     {
-        $this->spam = $spam;
+        $this->spamFree = $spamFree;
     }
+
 
     /**
      * Display a listing of the resource.
@@ -56,7 +61,7 @@ class ReplayController extends Controller
                 'user_id'=>auth()->user()->id
             ]);
         }catch (\Exception $e){
-            return response('cannot save ur reply in this time',400);
+            throw new \Exception('cannot save ur reply in this time',400);
         }
         if ($request->expectsJson()){
            return response($thread->load('owner') , 201);
@@ -96,14 +101,13 @@ class ReplayController extends Controller
      */
     public function update(Request $request, Replay $replay)
     {
-
+        $this->authorize('update' , $replay);
         try {
-            $this->authorize('update' , $replay);
             $data=$this->validateReply();
             $replay->update($data);
 
         }catch (\Exception $e){
-            return response('we cannot save ur reply in this time' , 400);
+            throw new \Exception('cannot update ur reply in this time',400);
         }
 
         return response([] ,200);
@@ -140,10 +144,9 @@ class ReplayController extends Controller
      */
     public function validateReply(): array
     {
-       $data= $this->validate(request(), [
-            'body' => 'required'
+       $data= request()->validate( [
+            'body' => ['required' , $this->spamFree]
         ]);
-        $this->spam->detect(request('body'));
         return $data;
     }
 }
