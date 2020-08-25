@@ -2,26 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CreatePostRequest;
 use App\interceptions\Spam;
 use App\Replay;
 use App\Rules\SpamFree;
 use App\Thread;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Http\Request;
-use mysql_xdevapi\Exception;
 use Tests\Feature\SpamTest;
 
 class ReplayController extends Controller
 {
-    private   $spamFree;
-
-    /**
-     * ReplayController constructor.
-     * @param $spam
-     */
-    public function __construct(SpamFree $spamFree)
-    {
-        $this->spamFree = $spamFree;
-    }
 
 
     /**
@@ -52,16 +43,16 @@ class ReplayController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request, $channe_id,Thread $thread)
+    public function store(CreatePostRequest $request, $channe_id,Thread $thread )
     {
         try {
-            $this->validateReply();
             $thread = $thread->addReplay([
                 'body'=>$request->input('body') ,
                 'user_id'=>auth()->user()->id
             ]);
+
         }catch (\Exception $e){
-            throw new \Exception('cannot save ur reply in this time',400);
+            return response('An error occured' , 400);
         }
         if ($request->expectsJson()){
            return response($thread->load('owner') , 201);
@@ -145,7 +136,7 @@ class ReplayController extends Controller
     public function validateReply(): array
     {
        $data= request()->validate( [
-            'body' => ['required' , $this->spamFree]
+            'body' => ['required' , new SpamFree]
         ]);
         return $data;
     }

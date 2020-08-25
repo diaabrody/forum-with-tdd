@@ -54,7 +54,13 @@
                             flash('added');
                         })
                         .catch(({response})=>{
-                            flash(response.data.message ,'danger');
+                            const errorField = Object.keys(response.data.errors)[0];
+                            const errorFieldMessage = response.data.errors[errorField];
+                            const errorMessage = `${errorField} Field  ${errorFieldMessage}`;
+                            if (response.status === 422){
+                                flash(errorMessage ,'danger');
+                            }
+
                         });
                 }else{
                     this.error = true;

@@ -39,8 +39,9 @@ class ReplayPolicy
      * @param  \App\User  $user
      * @return mixed
      */
-    public function create(User $user)
+    public function create(User $user ,  Replay $replay)
     {
+       return ! optional($user->fresh()->lastestReply)->wasJustPublished();
         //
     }
 

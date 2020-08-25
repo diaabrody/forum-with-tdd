@@ -55,4 +55,8 @@ class User extends Authenticatable
         $user= $user?:auth()->user();
         return $user->notifications()->findOrFail($notification)->markAsRead();
     }
+
+    public function lastestReply(){
+        return $this->hasOne('App\Replay')->latest();
+    }
 }

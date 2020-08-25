@@ -47,6 +47,7 @@ class ParticipateInThreadsTest extends CustomTestCase
     }
 
     public function test_a_replay_require_body(){
+//        $this->withoutExceptionHandling();
         $this->be($user=factory(User::class)->create());
         $thread=create(Thread::class);
         $replay=make(Replay::class , ['body'=>null]);
@@ -83,12 +84,21 @@ class ParticipateInThreadsTest extends CustomTestCase
     }
 
     public function test_detection_of_spam_while_when_user_add_new_reply(){
-        $this->withoutExceptionHandling();
         $this->login();
         $thread=create(Thread::class);
         $replay=make(Replay::class , ['body'=>'bad comment']);
-        $this->expectException(\Exception::class);
-        $this->post("{$thread->path()}/replies" , $replay->toArray());
+//        $this->expectException(\Exception::class);
+        $this->postJson("{$thread->path()}/replies" , $replay->toArray())->assertStatus(422);
+    }
+    public  function test_users_may_only_reply_a_maximum_of_once_per_minute(){
+        $this->login();
+        $thread=create('App\Thread');
+        $this->postJson($thread->path().'/replies' ,['body'=>'test'])
+            ->assertStatus(201);
+
+
+        $this->postJson("{$thread->path()}/replies"  ,['body'=>'test 2'])
+            ->assertStatus(429);
     }
 
 

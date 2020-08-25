@@ -2101,7 +2101,13 @@ __webpack_require__.r(__webpack_exports__);
           flash('added');
         })["catch"](function (_ref2) {
           var response = _ref2.response;
-          flash(response.data.message, 'danger');
+          var errorField = Object.keys(response.data.errors)[0];
+          var errorFieldMessage = response.data.errors[errorField];
+          var errorMessage = "".concat(errorField, " Field  ").concat(errorFieldMessage);
+
+          if (response.status === 422) {
+            flash(errorMessage, 'danger');
+          }
         });
       } else {
         this.error = true;

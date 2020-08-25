@@ -2,6 +2,7 @@
 
 namespace App;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 class Replay extends Model
@@ -45,6 +46,10 @@ class Replay extends Model
     }
     public function getFavouritesCountAttribute(){
         return count($this->favourites);
+    }
+
+    public function wasJustPublished(){
+       return $this->created_at->gt(Carbon::now()->subMinute());
     }
 
 }
