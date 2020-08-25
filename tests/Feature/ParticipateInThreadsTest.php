@@ -17,11 +17,7 @@ use Tests\TestCase;
 class ParticipateInThreadsTest extends CustomTestCase
 {
 
-    /**
-     * A basic feature test example.
-     *
-     * @return void
-     */
+
     public function SetUp():void {
         Parent::setUp();
 

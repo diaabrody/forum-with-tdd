@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\CreatePostRequest;
 use App\interceptions\Spam;
+use App\Notifications\MentionedUser;
 use App\Replay;
 use App\Rules\SpamFree;
 use App\Thread;
+use App\User;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Http\Request;
 use Tests\Feature\SpamTest;
@@ -46,18 +48,18 @@ class ReplayController extends Controller
     public function store(CreatePostRequest $request, $channe_id,Thread $thread )
     {
         try {
-            $thread = $thread->addReplay([
-                'body'=>$request->input('body') ,
+            $replay = $thread->addReplay([
+                'body'=>request('body') ,
                 'user_id'=>auth()->user()->id
             ]);
+
 
         }catch (\Exception $e){
             return response('An error occured' , 400);
         }
         if ($request->expectsJson()){
-           return response($thread->load('owner') , 201);
+           return response($replay->load('owner') , 201);
         }
-        //
         return  back()->with('flash' , 'reply created');
     }
 

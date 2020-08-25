@@ -15,17 +15,7 @@ use Tests\TestCase;
 
 class SubscriptionTest extends CustomTestCase
 {
-    /**
-     * A basic feature test example.
-     *
-     * @return void
-     */
 
-    /**
-     * A basic feature test example.
-     *
-     * @return void
-     */
     public function SetUp(): void
     {
         Parent::setUp();
