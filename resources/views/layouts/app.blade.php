@@ -31,6 +31,7 @@
 
     </style>
     <link rel="stylesheet" href="{{ asset('css/material-icons.css') }}" />
+    @yield('css')
 
         <script>
              window.App = {!! json_encode([

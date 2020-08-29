@@ -13,9 +13,7 @@
                         required
                         @input="error = false"
               ></textarea>
-               <span class="help-block text-danger" v-if="error">this field is reuired</span>
-
-
+               <span class="help-block text-danger" v-if="error">this field is required</span>
            </div>
 
            <button type="submit" class="btn btn-primary" @click.prevent="addReply">Post</button>
@@ -30,17 +28,31 @@
 </template>
 
 <script>
+    import 'jquery.caret';
+    import 'at.js';
     export default {
         props:[],
         data() {
             return {
                 body:'' ,
                 error:false
-
             }
         },
         created() {
 
+        },
+        mounted() {
+            $('#body').atwho({
+                at: "@",
+                delay: 2000,
+                callbacks: {
+                    remoteFilter: function(query, callback) {
+                        $.getJSON("/api/users", {name: query}, function(usernames) {
+                            callback(usernames)
+                        });
+                    }
+                }
+            });
         },
         methods:{
             addReply(){

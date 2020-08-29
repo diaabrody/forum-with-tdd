@@ -52,8 +52,6 @@ class ReplayController extends Controller
                 'body'=>request('body') ,
                 'user_id'=>auth()->user()->id
             ]);
-
-
         }catch (\Exception $e){
             return response('An error occured' , 400);
         }
@@ -98,13 +96,10 @@ class ReplayController extends Controller
         try {
             $data=$this->validateReply();
             $replay->update($data);
-
         }catch (\Exception $e){
             throw new \Exception('cannot update ur reply in this time',400);
         }
-
         return response([] ,200);
-        //
     }
 
     /**
