@@ -30,7 +30,7 @@ Route::get('/threads/{channel}/{thread}/replies' , 'ReplayController@index');
 Route::post('/threads' , 'ThreadController@store')
     ->middleware('auth');
 Route::post("/replies/{replay}/favourites" , "FavouriteController@store");
-Route::get("/profiles/{user:name}" , 'ProfileController@show');
+Route::get("/profiles/{user:name}" , 'ProfileController@show')->name('profile');
 Route::delete('/replay/{replay}' , 'ReplayController@destroy')
     ->name('replay.destroy');
 Route::patch( '/replay/{replay}', 'ReplayController@update');

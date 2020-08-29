@@ -33,21 +33,28 @@
                     this.createFav();
                 }
             } ,
-            removeFav(){
-                axios.delete("/replies/"+this.reply.id+"/favourites")
-                    .then(()=>{
-                        this.active = false;
-                        this.count--;
-                    })
-                    .catch((error)=>{console.log(error)});
+            async removeFav(){
+                this.active = false;
+                this.count--;
+                try {
+                    await axios.delete("/replies/"+this.reply.id+"/favourites")
+                }catch (e) {
+                    this.active = true;
+                    this.count++;
+                    console.log(e)
+                }
             },
-            createFav(){
-                axios.post("/replies/"+this.reply.id+"/favourites")
-                    .then(()=>{
-                        this.active = true;
-                        this.count++;
-                    })
-                    .catch((error)=>{console.log(error)});
+           async createFav(){
+               this.active = true;
+               this.count++;
+               try {
+                   await axios.post("/replies/"+this.reply.id+"/favourites")
+
+               }catch (e) {
+                   this.active = false;
+                   this.count--;
+                   console.log(e)
+               }
             }
         },
     }

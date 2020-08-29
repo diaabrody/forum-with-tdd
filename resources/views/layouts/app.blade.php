@@ -25,6 +25,7 @@
         .flex{
             display: flex;
             flex: 1;
+            flex-direction: column;
         }
         [v-cloak] { display:none; }
         .material-icons.md-18 { font-size: 18px; }

@@ -45,14 +45,14 @@ class ReadThreadsTest extends CustomTestCase{
         create('App\Replay' , ['thread_id' =>$threadWith5Replaies->id] , 5);
         $threadWith1Replay = $this->thread;
         $reponse=$this->getJson('threads?popular=1')->json();
-        $this->assertEquals([5,3,0],array_column($reponse , 'replies_count'));
+        $this->assertEquals([5,3,0],array_column($reponse['data'] , 'replies_count'));
     }
 
     function test_a_user_can_filter_threads_by_those_that_are_unanswered(){
         $thread=create('App\Thread');
         $replay=create('App\Replay' , ['thread_id'=>$thread->id]);
         $res=$this->getJson('threads?unanswered=1')->json();
-        $this->assertCount(1 , $res);
+        $this->assertCount(1 , $res['data']);
     }
 
 

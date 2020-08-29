@@ -11,7 +11,7 @@
                         placeholder="Have something to say?"
                         rows="5"
                         required
-                        @input="error = false"
+                        @input="onChangeHandler"
               ></textarea>
                <span class="help-block text-danger" v-if="error">this field is required</span>
            </div>
@@ -78,6 +78,9 @@
                     this.error = true;
                 }
 
+            },
+            onChangeHandler(){
+                this.error = false
             }
 
         },

@@ -128,7 +128,7 @@ class ThreadController extends Controller
         if ($channel->exists) {
             $threads->where('channel_id', $channel->id);
         }
-        $threads = $threads->latest()->get();
+        $threads = $threads->latest()->paginate(25);
         return $threads;
     }
 }

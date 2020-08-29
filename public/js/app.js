@@ -3140,6 +3140,14 @@ module.exports = {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js");
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__);
+
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
 //
 //
 //
@@ -3174,22 +3182,68 @@ __webpack_require__.r(__webpack_exports__);
     removeFav: function removeFav() {
       var _this = this;
 
-      axios["delete"]("/replies/" + this.reply.id + "/favourites").then(function () {
-        _this.active = false;
-        _this.count--;
-      })["catch"](function (error) {
-        console.log(error);
-      });
+      return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee() {
+        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                _this.active = false;
+                _this.count--;
+                _context.prev = 2;
+                _context.next = 5;
+                return axios["delete"]("/replies/" + _this.reply.id + "/favourites");
+
+              case 5:
+                _context.next = 12;
+                break;
+
+              case 7:
+                _context.prev = 7;
+                _context.t0 = _context["catch"](2);
+                _this.active = true;
+                _this.count++;
+                console.log(_context.t0);
+
+              case 12:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, null, [[2, 7]]);
+      }))();
     },
     createFav: function createFav() {
       var _this2 = this;
 
-      axios.post("/replies/" + this.reply.id + "/favourites").then(function () {
-        _this2.active = true;
-        _this2.count++;
-      })["catch"](function (error) {
-        console.log(error);
-      });
+      return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee2() {
+        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                _this2.active = true;
+                _this2.count++;
+                _context2.prev = 2;
+                _context2.next = 5;
+                return axios.post("/replies/" + _this2.reply.id + "/favourites");
+
+              case 5:
+                _context2.next = 12;
+                break;
+
+              case 7:
+                _context2.prev = 7;
+                _context2.t0 = _context2["catch"](2);
+                _this2.active = false;
+                _this2.count--;
+                console.log(_context2.t0);
+
+              case 12:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2, null, [[2, 7]]);
+      }))();
     }
   }
 });
@@ -3318,7 +3372,6 @@ __webpack_require__.r(__webpack_exports__);
           $.getJSON("/api/users", {
             name: query
           }, function (usernames) {
-            console.log(query);
             callback(usernames);
           });
         }
@@ -3330,6 +3383,7 @@ __webpack_require__.r(__webpack_exports__);
       var _this = this;
 
       if (this.body.trim() !== "") {
+        this.body = this.body.trim() + 's';
         axios.post(location.pathname + '/replies', {
           body: this.body
         }).then(function (_ref) {
@@ -3352,6 +3406,9 @@ __webpack_require__.r(__webpack_exports__);
       } else {
         this.error = true;
       }
+    },
+    onChangeHandler: function onChangeHandler() {
+      this.error = false;
     }
   },
   computed: {
@@ -62789,9 +62846,7 @@ var render = function() {
                       }
                       _vm.body = $event.target.value
                     },
-                    function($event) {
-                      _vm.error = false
-                    }
+                    _vm.onChangeHandler
                   ]
                 }
               }),
