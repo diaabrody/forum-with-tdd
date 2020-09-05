@@ -5,6 +5,7 @@ namespace App;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 
 class User extends Authenticatable
 {
@@ -16,7 +17,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password',
+        'name', 'email', 'password', 'avatar_path'
     ];
 
     /**
@@ -58,5 +59,9 @@ class User extends Authenticatable
 
     public function lastestReply(){
         return $this->hasOne('App\Replay')->latest();
+    }
+
+    public function getAvatarPathAttribute($avatar){
+       return Storage::url($avatar ?:'avatars/default.png') ;
     }
 }

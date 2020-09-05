@@ -8,6 +8,7 @@ use App\Rules\SpamFree;
 use App\Thread;
 use App\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Redis;
 
 class ThreadController extends Controller
 {
@@ -21,13 +22,17 @@ class ThreadController extends Controller
 
     public function index(Channel $channel , ThreadFilters $filters)
     {
-        $threads = $this->getThreads($filters, $channel);
+         $threads = $this->getThreads($filters, $channel);
+         $trending_threads=array_map('json_decode',
+             Redis::zrevrange('trending_threads' , 0 , 4));
         if (request()->wantsJson()){
           return $threads;
         }
-        return view('thread.index', compact('threads'));
+        return view('thread.index', [
+            'threads'=>$threads ,
+            'trending_threads'=>$trending_threads
+        ]);
     }
-
     /**
      * Show the form for creating a new resource.
      *
@@ -66,6 +71,10 @@ class ThreadController extends Controller
     public function show(Channel $channel, Thread $thread)
     {
         //
+        Redis::zincrby('trending_threads' , 1 , json_encode([
+            'title' =>$thread->title,
+            'path'=>$thread->path()
+        ]));
         return view('thread.show', [
             'thread'=>$thread ,
             'replies'=>$thread->replies()->paginate(20)

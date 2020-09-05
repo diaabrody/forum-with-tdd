@@ -4,20 +4,20 @@
  * building robust, powerful web applications using Vue and Laravel.
  */
 
-require('./bootstrap');
+require("./bootstrap");
 
-window.Vue = require('vue');
+window.Vue = require("vue");
 
-window.Vue.prototype.authorize = function(handler){
-       const { user } = window.App;
-       return !! user ? handler(window.App.user) : false;
-}
+window.Vue.prototype.authorize = function(handler) {
+    const { user } = window.App;
+    return !!user ? handler(window.App.user) : false;
+};
 
 window.events = new Vue();
 
-window.flash = function(message , type = 'success'){
-    events.$emit('flash' ,{type , message});
-}
+window.flash = function(message, type = "success") {
+    events.$emit("flash", { type, message });
+};
 /**
  * The following block of code may be used to automatically register your
  * Vue components. It will recursively scan this directory for the Vue
@@ -29,12 +29,14 @@ window.flash = function(message , type = 'success'){
 // const files = require.context('./', true, /\.vue$/i)
 // files.keys().map(key => Vue.component(key.split('/').pop().split('.')[0], files(key).default))
 
-Vue.component('flash', require('./components/Flash.vue').default);
-Vue.component('thread-view', require('./pages/ThreadView.vue').default);
-Vue.component('paginator', require('./components/Paginator.vue').default);
-Vue.component('user-notifications', require('./components/UserNotifications.vue').default);
-
-
+Vue.component("flash", require("./components/Flash.vue").default);
+Vue.component("thread-view", require("./pages/ThreadView.vue").default);
+Vue.component("paginator", require("./components/Paginator.vue").default);
+Vue.component(
+    "user-notifications",
+    require("./components/UserNotifications.vue").default
+);
+Vue.component("avatar-form", require("./components/AvatarForm").default);
 
 /**
  * Next, we will create a fresh Vue application instance and attach it to
@@ -43,5 +45,5 @@ Vue.component('user-notifications', require('./components/UserNotifications.vue'
  */
 
 const app = new Vue({
-    el: '#app',
+    el: "#app"
 });

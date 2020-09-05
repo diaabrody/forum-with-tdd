@@ -49,7 +49,7 @@ class Replay extends Model
     }
 
     public function wasJustPublished(){
-       return $this->created_at->gt(Carbon::now()->subMinute());
+       return $this->created_at->gt(Carbon::now()->subSeconds(10));
     }
 
     public function setBodyAttribute($body){

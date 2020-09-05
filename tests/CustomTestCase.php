@@ -12,5 +12,6 @@ abstract  class CustomTestCase  extends TestCase
     protected function login($user = null){
         $user = $user?:factory('App\User')->create();
         $this->actingAs($user);
+        return $user;
     }
 }

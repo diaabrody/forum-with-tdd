@@ -28,8 +28,9 @@
 </template>
 
 <script>
-    import 'jquery.caret';
-    import 'at.js';
+    import Tribute from "tributejs";
+    import _ from 'lodash';
+
     export default {
         props:[],
         data() {
@@ -42,17 +43,16 @@
 
         },
         mounted() {
-            $('#body').atwho({
-                at: "@",
-                delay: 2000,
-                callbacks: {
-                    remoteFilter: function(query, callback) {
-                        $.getJSON("/api/users", {name: query}, function(usernames) {
-                            callback(usernames)
-                        });
-                    }
-                }
+            let tribute = new Tribute({
+                //..other config options
+                // function retrieving an array of objects
+                values:_.debounce(this.loadData.bind(this), 1000) ,
+                lookup: 'value',
+                fillAttr: 'value',
+                noMatchTemplate: "",
             });
+
+            tribute.attach(document.querySelectorAll("#body"));
         },
         methods:{
             addReply(){
@@ -78,6 +78,11 @@
                     this.error = true;
                 }
 
+            },
+            async loadData(query, cb){
+                    const {data:names}= await axios.get('/api/users' , {params:{name:query}});
+                    const result= names.map((name)=>{return {value:name}});
+                    cb(result);
             },
             onChangeHandler(){
                 this.error = false

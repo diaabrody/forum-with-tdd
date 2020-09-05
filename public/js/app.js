@@ -98,1226 +98,6 @@ module.exports = __webpack_require__(/*! regenerator-runtime */ "./node_modules/
 
 /***/ }),
 
-/***/ "./node_modules/at.js/dist/js/jquery.atwho.js":
-/*!****************************************************!*\
-  !*** ./node_modules/at.js/dist/js/jquery.atwho.js ***!
-  \****************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/**
- * at.js - 1.5.4
- * Copyright (c) 2018 chord.luo <chord.luo@gmail.com>;
- * Homepage: http://ichord.github.com/At.js
- * License: MIT
- */
-(function (root, factory) {
-  if (true) {
-    // AMD. Register as an anonymous module unless amdModuleId is set
-    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js")], __WEBPACK_AMD_DEFINE_RESULT__ = (function (a0) {
-      return (factory(a0));
-    }).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
-				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-  } else {}
-}(this, function ($) {
-var DEFAULT_CALLBACKS, KEY_CODE;
-
-KEY_CODE = {
-  ESC: 27,
-  TAB: 9,
-  ENTER: 13,
-  CTRL: 17,
-  A: 65,
-  P: 80,
-  N: 78,
-  LEFT: 37,
-  UP: 38,
-  RIGHT: 39,
-  DOWN: 40,
-  BACKSPACE: 8,
-  SPACE: 32
-};
-
-DEFAULT_CALLBACKS = {
-  beforeSave: function(data) {
-    return Controller.arrayToDefaultHash(data);
-  },
-  matcher: function(flag, subtext, should_startWithSpace, acceptSpaceBar) {
-    var _a, _y, match, regexp, space;
-    flag = flag.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
-    if (should_startWithSpace) {
-      flag = '(?:^|\\s)' + flag;
-    }
-    _a = decodeURI("%C3%80");
-    _y = decodeURI("%C3%BF");
-    space = acceptSpaceBar ? "\ " : "";
-    regexp = new RegExp(flag + "([A-Za-z" + _a + "-" + _y + "0-9_" + space + "\'\.\+\-]*)$|" + flag + "([^\\x00-\\xff]*)$", 'gi');
-    match = regexp.exec(subtext);
-    if (match) {
-      return match[2] || match[1];
-    } else {
-      return null;
-    }
-  },
-  filter: function(query, data, searchKey) {
-    var _results, i, item, len;
-    _results = [];
-    for (i = 0, len = data.length; i < len; i++) {
-      item = data[i];
-      if (~new String(item[searchKey]).toLowerCase().indexOf(query.toLowerCase())) {
-        _results.push(item);
-      }
-    }
-    return _results;
-  },
-  remoteFilter: null,
-  sorter: function(query, items, searchKey) {
-    var _results, i, item, len;
-    if (!query) {
-      return items;
-    }
-    _results = [];
-    for (i = 0, len = items.length; i < len; i++) {
-      item = items[i];
-      item.atwho_order = new String(item[searchKey]).toLowerCase().indexOf(query.toLowerCase());
-      if (item.atwho_order > -1) {
-        _results.push(item);
-      }
-    }
-    return _results.sort(function(a, b) {
-      return a.atwho_order - b.atwho_order;
-    });
-  },
-  tplEval: function(tpl, map) {
-    var error, error1, template;
-    template = tpl;
-    try {
-      if (typeof tpl !== 'string') {
-        template = tpl(map);
-      }
-      return template.replace(/\$\{([^\}]*)\}/g, function(tag, key, pos) {
-        return map[key];
-      });
-    } catch (error1) {
-      error = error1;
-      return "";
-    }
-  },
-  highlighter: function(li, query) {
-    var regexp;
-    if (!query) {
-      return li;
-    }
-    regexp = new RegExp(">\\s*([^\<]*?)(" + query.replace("+", "\\+") + ")([^\<]*)\\s*<", 'ig');
-    return li.replace(regexp, function(str, $1, $2, $3) {
-      return '> ' + $1 + '<strong>' + $2 + '</strong>' + $3 + ' <';
-    });
-  },
-  beforeInsert: function(value, $li, e) {
-    return value;
-  },
-  beforeReposition: function(offset) {
-    return offset;
-  },
-  afterMatchFailed: function(at, el) {}
-};
-
-var App;
-
-App = (function() {
-  function App(inputor) {
-    this.currentFlag = null;
-    this.controllers = {};
-    this.aliasMaps = {};
-    this.$inputor = $(inputor);
-    this.setupRootElement();
-    this.listen();
-  }
-
-  App.prototype.createContainer = function(doc) {
-    var ref;
-    if ((ref = this.$el) != null) {
-      ref.remove();
-    }
-    return $(doc.body).append(this.$el = $("<div class='atwho-container'></div>"));
-  };
-
-  App.prototype.setupRootElement = function(iframe, asRoot) {
-    var error, error1;
-    if (asRoot == null) {
-      asRoot = false;
-    }
-    if (iframe) {
-      this.window = iframe.contentWindow;
-      this.document = iframe.contentDocument || this.window.document;
-      this.iframe = iframe;
-    } else {
-      this.document = this.$inputor[0].ownerDocument;
-      this.window = this.document.defaultView || this.document.parentWindow;
-      try {
-        this.iframe = this.window.frameElement;
-      } catch (error1) {
-        error = error1;
-        this.iframe = null;
-        if ($.fn.atwho.debug) {
-          throw new Error("iframe auto-discovery is failed.\nPlease use `setIframe` to set the target iframe manually.\n" + error);
-        }
-      }
-    }
-    return this.createContainer((this.iframeAsRoot = asRoot) ? this.document : document);
-  };
-
-  App.prototype.controller = function(at) {
-    var c, current, currentFlag, ref;
-    if (this.aliasMaps[at]) {
-      current = this.controllers[this.aliasMaps[at]];
-    } else {
-      ref = this.controllers;
-      for (currentFlag in ref) {
-        c = ref[currentFlag];
-        if (currentFlag === at) {
-          current = c;
-          break;
-        }
-      }
-    }
-    if (current) {
-      return current;
-    } else {
-      return this.controllers[this.currentFlag];
-    }
-  };
-
-  App.prototype.setContextFor = function(at) {
-    this.currentFlag = at;
-    return this;
-  };
-
-  App.prototype.reg = function(flag, setting) {
-    var base, controller;
-    controller = (base = this.controllers)[flag] || (base[flag] = this.$inputor.is('[contentEditable]') ? new EditableController(this, flag) : new TextareaController(this, flag));
-    if (setting.alias) {
-      this.aliasMaps[setting.alias] = flag;
-    }
-    controller.init(setting);
-    return this;
-  };
-
-  App.prototype.listen = function() {
-    return this.$inputor.on('compositionstart', (function(_this) {
-      return function(e) {
-        var ref;
-        if ((ref = _this.controller()) != null) {
-          ref.view.hide();
-        }
-        _this.isComposing = true;
-        return null;
-      };
-    })(this)).on('compositionend', (function(_this) {
-      return function(e) {
-        _this.isComposing = false;
-        setTimeout(function(e) {
-          return _this.dispatch(e);
-        });
-        return null;
-      };
-    })(this)).on('keyup.atwhoInner', (function(_this) {
-      return function(e) {
-        return _this.onKeyup(e);
-      };
-    })(this)).on('keydown.atwhoInner', (function(_this) {
-      return function(e) {
-        return _this.onKeydown(e);
-      };
-    })(this)).on('blur.atwhoInner', (function(_this) {
-      return function(e) {
-        var c;
-        if (c = _this.controller()) {
-          c.expectedQueryCBId = null;
-          return c.view.hide(e, c.getOpt("displayTimeout"));
-        }
-      };
-    })(this)).on('click.atwhoInner', (function(_this) {
-      return function(e) {
-        return _this.dispatch(e);
-      };
-    })(this)).on('scroll.atwhoInner', (function(_this) {
-      return function() {
-        var lastScrollTop;
-        lastScrollTop = _this.$inputor.scrollTop();
-        return function(e) {
-          var currentScrollTop, ref;
-          currentScrollTop = e.target.scrollTop;
-          if (lastScrollTop !== currentScrollTop) {
-            if ((ref = _this.controller()) != null) {
-              ref.view.hide(e);
-            }
-          }
-          lastScrollTop = currentScrollTop;
-          return true;
-        };
-      };
-    })(this)());
-  };
-
-  App.prototype.shutdown = function() {
-    var _, c, ref;
-    ref = this.controllers;
-    for (_ in ref) {
-      c = ref[_];
-      c.destroy();
-      delete this.controllers[_];
-    }
-    this.$inputor.off('.atwhoInner');
-    return this.$el.remove();
-  };
-
-  App.prototype.dispatch = function(e) {
-    var _, c, ref, results;
-    if (void 0 === e) {
-      return;
-    }
-    ref = this.controllers;
-    results = [];
-    for (_ in ref) {
-      c = ref[_];
-      results.push(c.lookUp(e));
-    }
-    return results;
-  };
-
-  App.prototype.onKeyup = function(e) {
-    var ref;
-    switch (e.keyCode) {
-      case KEY_CODE.ESC:
-        e.preventDefault();
-        if ((ref = this.controller()) != null) {
-          ref.view.hide();
-        }
-        break;
-      case KEY_CODE.DOWN:
-      case KEY_CODE.UP:
-      case KEY_CODE.CTRL:
-      case KEY_CODE.ENTER:
-        $.noop();
-        break;
-      case KEY_CODE.P:
-      case KEY_CODE.N:
-        if (!e.ctrlKey) {
-          this.dispatch(e);
-        }
-        break;
-      default:
-        this.dispatch(e);
-    }
-  };
-
-  App.prototype.onKeydown = function(e) {
-    var ref, view;
-    view = (ref = this.controller()) != null ? ref.view : void 0;
-    if (!(view && view.visible())) {
-      return;
-    }
-    switch (e.keyCode) {
-      case KEY_CODE.ESC:
-        e.preventDefault();
-        view.hide(e);
-        break;
-      case KEY_CODE.UP:
-        e.preventDefault();
-        view.prev();
-        break;
-      case KEY_CODE.DOWN:
-        e.preventDefault();
-        view.next();
-        break;
-      case KEY_CODE.P:
-        if (!e.ctrlKey) {
-          return;
-        }
-        e.preventDefault();
-        view.prev();
-        break;
-      case KEY_CODE.N:
-        if (!e.ctrlKey) {
-          return;
-        }
-        e.preventDefault();
-        view.next();
-        break;
-      case KEY_CODE.TAB:
-      case KEY_CODE.ENTER:
-      case KEY_CODE.SPACE:
-        if (!view.visible()) {
-          return;
-        }
-        if (!this.controller().getOpt('spaceSelectsMatch') && e.keyCode === KEY_CODE.SPACE) {
-          return;
-        }
-        if (!this.controller().getOpt('tabSelectsMatch') && e.keyCode === KEY_CODE.TAB) {
-          return;
-        }
-        if (view.highlighted()) {
-          e.preventDefault();
-          view.choose(e);
-        } else {
-          view.hide(e);
-        }
-        break;
-      default:
-        $.noop();
-    }
-  };
-
-  return App;
-
-})();
-
-var Controller,
-  slice = [].slice;
-
-Controller = (function() {
-  Controller.prototype.uid = function() {
-    return (Math.random().toString(16) + "000000000").substr(2, 8) + (new Date().getTime());
-  };
-
-  function Controller(app, at1) {
-    this.app = app;
-    this.at = at1;
-    this.$inputor = this.app.$inputor;
-    this.id = this.$inputor[0].id || this.uid();
-    this.expectedQueryCBId = null;
-    this.setting = null;
-    this.query = null;
-    this.pos = 0;
-    this.range = null;
-    if ((this.$el = $("#atwho-ground-" + this.id, this.app.$el)).length === 0) {
-      this.app.$el.append(this.$el = $("<div id='atwho-ground-" + this.id + "'></div>"));
-    }
-    this.model = new Model(this);
-    this.view = new View(this);
-  }
-
-  Controller.prototype.init = function(setting) {
-    this.setting = $.extend({}, this.setting || $.fn.atwho["default"], setting);
-    this.view.init();
-    return this.model.reload(this.setting.data);
-  };
-
-  Controller.prototype.destroy = function() {
-    this.trigger('beforeDestroy');
-    this.model.destroy();
-    this.view.destroy();
-    return this.$el.remove();
-  };
-
-  Controller.prototype.callDefault = function() {
-    var args, error, error1, funcName;
-    funcName = arguments[0], args = 2 <= arguments.length ? slice.call(arguments, 1) : [];
-    try {
-      return DEFAULT_CALLBACKS[funcName].apply(this, args);
-    } catch (error1) {
-      error = error1;
-      return $.error(error + " Or maybe At.js doesn't have function " + funcName);
-    }
-  };
-
-  Controller.prototype.trigger = function(name, data) {
-    var alias, eventName;
-    if (data == null) {
-      data = [];
-    }
-    data.push(this);
-    alias = this.getOpt('alias');
-    eventName = alias ? name + "-" + alias + ".atwho" : name + ".atwho";
-    return this.$inputor.trigger(eventName, data);
-  };
-
-  Controller.prototype.callbacks = function(funcName) {
-    return this.getOpt("callbacks")[funcName] || DEFAULT_CALLBACKS[funcName];
-  };
-
-  Controller.prototype.getOpt = function(at, default_value) {
-    var e, error1;
-    try {
-      return this.setting[at];
-    } catch (error1) {
-      e = error1;
-      return null;
-    }
-  };
-
-  Controller.prototype.insertContentFor = function($li) {
-    var data, tpl;
-    tpl = this.getOpt('insertTpl');
-    data = $.extend({}, $li.data('item-data'), {
-      'atwho-at': this.at
-    });
-    return this.callbacks("tplEval").call(this, tpl, data, "onInsert");
-  };
-
-  Controller.prototype.renderView = function(data) {
-    var searchKey;
-    searchKey = this.getOpt("searchKey");
-    data = this.callbacks("sorter").call(this, this.query.text, data.slice(0, 1001), searchKey);
-    return this.view.render(data.slice(0, this.getOpt('limit')));
-  };
-
-  Controller.arrayToDefaultHash = function(data) {
-    var i, item, len, results;
-    if (!$.isArray(data)) {
-      return data;
-    }
-    results = [];
-    for (i = 0, len = data.length; i < len; i++) {
-      item = data[i];
-      if ($.isPlainObject(item)) {
-        results.push(item);
-      } else {
-        results.push({
-          name: item
-        });
-      }
-    }
-    return results;
-  };
-
-  Controller.prototype.lookUp = function(e) {
-    var query, wait;
-    if (e && e.type === 'click' && !this.getOpt('lookUpOnClick')) {
-      return;
-    }
-    if (this.getOpt('suspendOnComposing') && this.app.isComposing) {
-      return;
-    }
-    query = this.catchQuery(e);
-    if (!query) {
-      this.expectedQueryCBId = null;
-      return query;
-    }
-    this.app.setContextFor(this.at);
-    if (wait = this.getOpt('delay')) {
-      this._delayLookUp(query, wait);
-    } else {
-      this._lookUp(query);
-    }
-    return query;
-  };
-
-  Controller.prototype._delayLookUp = function(query, wait) {
-    var now, remaining;
-    now = Date.now ? Date.now() : new Date().getTime();
-    this.previousCallTime || (this.previousCallTime = now);
-    remaining = wait - (now - this.previousCallTime);
-    if ((0 < remaining && remaining < wait)) {
-      this.previousCallTime = now;
-      this._stopDelayedCall();
-      return this.delayedCallTimeout = setTimeout((function(_this) {
-        return function() {
-          _this.previousCallTime = 0;
-          _this.delayedCallTimeout = null;
-          return _this._lookUp(query);
-        };
-      })(this), wait);
-    } else {
-      this._stopDelayedCall();
-      if (this.previousCallTime !== now) {
-        this.previousCallTime = 0;
-      }
-      return this._lookUp(query);
-    }
-  };
-
-  Controller.prototype._stopDelayedCall = function() {
-    if (this.delayedCallTimeout) {
-      clearTimeout(this.delayedCallTimeout);
-      return this.delayedCallTimeout = null;
-    }
-  };
-
-  Controller.prototype._generateQueryCBId = function() {
-    return {};
-  };
-
-  Controller.prototype._lookUp = function(query) {
-    var _callback;
-    _callback = function(queryCBId, data) {
-      if (queryCBId !== this.expectedQueryCBId) {
-        return;
-      }
-      if (data && data.length > 0) {
-        return this.renderView(this.constructor.arrayToDefaultHash(data));
-      } else {
-        return this.view.hide();
-      }
-    };
-    this.expectedQueryCBId = this._generateQueryCBId();
-    return this.model.query(query.text, $.proxy(_callback, this, this.expectedQueryCBId));
-  };
-
-  return Controller;
-
-})();
-
-var TextareaController,
-  extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-  hasProp = {}.hasOwnProperty;
-
-TextareaController = (function(superClass) {
-  extend(TextareaController, superClass);
-
-  function TextareaController() {
-    return TextareaController.__super__.constructor.apply(this, arguments);
-  }
-
-  TextareaController.prototype.catchQuery = function() {
-    var caretPos, content, end, isString, query, start, subtext;
-    content = this.$inputor.val();
-    caretPos = this.$inputor.caret('pos', {
-      iframe: this.app.iframe
-    });
-    subtext = content.slice(0, caretPos);
-    query = this.callbacks("matcher").call(this, this.at, subtext, this.getOpt('startWithSpace'), this.getOpt("acceptSpaceBar"));
-    isString = typeof query === 'string';
-    if (isString && query.length < this.getOpt('minLen', 0)) {
-      return;
-    }
-    if (isString && query.length <= this.getOpt('maxLen', 20)) {
-      start = caretPos - query.length;
-      end = start + query.length;
-      this.pos = start;
-      query = {
-        'text': query,
-        'headPos': start,
-        'endPos': end
-      };
-      this.trigger("matched", [this.at, query.text]);
-    } else {
-      query = null;
-      this.view.hide();
-    }
-    return this.query = query;
-  };
-
-  TextareaController.prototype.rect = function() {
-    var c, iframeOffset, scaleBottom;
-    if (!(c = this.$inputor.caret('offset', this.pos - 1, {
-      iframe: this.app.iframe
-    }))) {
-      return;
-    }
-    if (this.app.iframe && !this.app.iframeAsRoot) {
-      iframeOffset = $(this.app.iframe).offset();
-      c.left += iframeOffset.left;
-      c.top += iframeOffset.top;
-    }
-    scaleBottom = this.app.document.selection ? 0 : 2;
-    return {
-      left: c.left,
-      top: c.top,
-      bottom: c.top + c.height + scaleBottom
-    };
-  };
-
-  TextareaController.prototype.insert = function(content, $li) {
-    var $inputor, source, startStr, suffix, text;
-    $inputor = this.$inputor;
-    source = $inputor.val();
-    startStr = source.slice(0, Math.max(this.query.headPos - this.at.length, 0));
-    suffix = (suffix = this.getOpt('suffix')) === "" ? suffix : suffix || " ";
-    content += suffix;
-    text = "" + startStr + content + (source.slice(this.query['endPos'] || 0));
-    $inputor.val(text);
-    $inputor.caret('pos', startStr.length + content.length, {
-      iframe: this.app.iframe
-    });
-    if (!$inputor.is(':focus')) {
-      $inputor.focus();
-    }
-    return $inputor.change();
-  };
-
-  return TextareaController;
-
-})(Controller);
-
-var EditableController,
-  extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-  hasProp = {}.hasOwnProperty;
-
-EditableController = (function(superClass) {
-  extend(EditableController, superClass);
-
-  function EditableController() {
-    return EditableController.__super__.constructor.apply(this, arguments);
-  }
-
-  EditableController.prototype._getRange = function() {
-    var sel;
-    sel = this.app.window.getSelection();
-    if (sel.rangeCount > 0) {
-      return sel.getRangeAt(0);
-    }
-  };
-
-  EditableController.prototype._setRange = function(position, node, range) {
-    if (range == null) {
-      range = this._getRange();
-    }
-    if (!(range && node)) {
-      return;
-    }
-    node = $(node)[0];
-    if (position === 'after') {
-      range.setEndAfter(node);
-      range.setStartAfter(node);
-    } else {
-      range.setEndBefore(node);
-      range.setStartBefore(node);
-    }
-    range.collapse(false);
-    return this._clearRange(range);
-  };
-
-  EditableController.prototype._clearRange = function(range) {
-    var sel;
-    if (range == null) {
-      range = this._getRange();
-    }
-    sel = this.app.window.getSelection();
-    if (this.ctrl_a_pressed == null) {
-      sel.removeAllRanges();
-      return sel.addRange(range);
-    }
-  };
-
-  EditableController.prototype._movingEvent = function(e) {
-    var ref;
-    return e.type === 'click' || ((ref = e.which) === KEY_CODE.RIGHT || ref === KEY_CODE.LEFT || ref === KEY_CODE.UP || ref === KEY_CODE.DOWN);
-  };
-
-  EditableController.prototype._unwrap = function(node) {
-    var next;
-    node = $(node).unwrap().get(0);
-    if ((next = node.nextSibling) && next.nodeValue) {
-      node.nodeValue += next.nodeValue;
-      $(next).remove();
-    }
-    return node;
-  };
-
-  EditableController.prototype.catchQuery = function(e) {
-    var $inserted, $query, _range, index, inserted, isString, lastNode, matched, offset, query, query_content, range;
-    if (!(range = this._getRange())) {
-      return;
-    }
-    if (!range.collapsed) {
-      return;
-    }
-    if (e.which === KEY_CODE.ENTER) {
-      ($query = $(range.startContainer).closest('.atwho-query')).contents().unwrap();
-      if ($query.is(':empty')) {
-        $query.remove();
-      }
-      ($query = $(".atwho-query", this.app.document)).text($query.text()).contents().last().unwrap();
-      this._clearRange();
-      return;
-    }
-    if (/firefox/i.test(navigator.userAgent)) {
-      if ($(range.startContainer).is(this.$inputor)) {
-        this._clearRange();
-        return;
-      }
-      if (e.which === KEY_CODE.BACKSPACE && range.startContainer.nodeType === document.ELEMENT_NODE && (offset = range.startOffset - 1) >= 0) {
-        _range = range.cloneRange();
-        _range.setStart(range.startContainer, offset);
-        if ($(_range.cloneContents()).contents().last().is('.atwho-inserted')) {
-          inserted = $(range.startContainer).contents().get(offset);
-          this._setRange('after', $(inserted).contents().last());
-        }
-      } else if (e.which === KEY_CODE.LEFT && range.startContainer.nodeType === document.TEXT_NODE) {
-        $inserted = $(range.startContainer.previousSibling);
-        if ($inserted.is('.atwho-inserted') && range.startOffset === 0) {
-          this._setRange('after', $inserted.contents().last());
-        }
-      }
-    }
-    $(range.startContainer).closest('.atwho-inserted').addClass('atwho-query').siblings().removeClass('atwho-query');
-    if (($query = $(".atwho-query", this.app.document)).length > 0 && $query.is(':empty') && $query.text().length === 0) {
-      $query.remove();
-    }
-    if (!this._movingEvent(e)) {
-      $query.removeClass('atwho-inserted');
-    }
-    if ($query.length > 0) {
-      switch (e.which) {
-        case KEY_CODE.LEFT:
-          this._setRange('before', $query.get(0), range);
-          $query.removeClass('atwho-query');
-          return;
-        case KEY_CODE.RIGHT:
-          this._setRange('after', $query.get(0).nextSibling, range);
-          $query.removeClass('atwho-query');
-          return;
-      }
-    }
-    if ($query.length > 0 && (query_content = $query.attr('data-atwho-at-query'))) {
-      $query.empty().html(query_content).attr('data-atwho-at-query', null);
-      this._setRange('after', $query.get(0), range);
-    }
-    _range = range.cloneRange();
-    _range.setStart(range.startContainer, 0);
-    matched = this.callbacks("matcher").call(this, this.at, _range.toString(), this.getOpt('startWithSpace'), this.getOpt("acceptSpaceBar"));
-    isString = typeof matched === 'string';
-    if ($query.length === 0 && isString && (index = range.startOffset - this.at.length - matched.length) >= 0) {
-      range.setStart(range.startContainer, index);
-      $query = $('<span/>', this.app.document).attr(this.getOpt("editableAtwhoQueryAttrs")).addClass('atwho-query');
-      range.surroundContents($query.get(0));
-      lastNode = $query.contents().last().get(0);
-      if (lastNode) {
-        if (/firefox/i.test(navigator.userAgent)) {
-          range.setStart(lastNode, lastNode.length);
-          range.setEnd(lastNode, lastNode.length);
-          this._clearRange(range);
-        } else {
-          this._setRange('after', lastNode, range);
-        }
-      }
-    }
-    if (isString && matched.length < this.getOpt('minLen', 0)) {
-      return;
-    }
-    if (isString && matched.length <= this.getOpt('maxLen', 20)) {
-      query = {
-        text: matched,
-        el: $query
-      };
-      this.trigger("matched", [this.at, query.text]);
-      return this.query = query;
-    } else {
-      this.view.hide();
-      this.query = {
-        el: $query
-      };
-      if ($query.text().indexOf(this.at) >= 0) {
-        if (this._movingEvent(e) && $query.hasClass('atwho-inserted')) {
-          $query.removeClass('atwho-query');
-        } else if (false !== this.callbacks('afterMatchFailed').call(this, this.at, $query)) {
-          this._setRange("after", this._unwrap($query.text($query.text()).contents().first()));
-        }
-      }
-      return null;
-    }
-  };
-
-  EditableController.prototype.rect = function() {
-    var $iframe, iframeOffset, rect;
-    rect = this.query.el.offset();
-    if (!(rect && this.query.el[0].getClientRects().length)) {
-      return;
-    }
-    if (this.app.iframe && !this.app.iframeAsRoot) {
-      iframeOffset = ($iframe = $(this.app.iframe)).offset();
-      rect.left += iframeOffset.left - this.$inputor.scrollLeft();
-      rect.top += iframeOffset.top - this.$inputor.scrollTop();
-    }
-    rect.bottom = rect.top + this.query.el.height();
-    return rect;
-  };
-
-  EditableController.prototype.insert = function(content, $li) {
-    var data, overrides, range, suffix, suffixNode;
-    if (!this.$inputor.is(':focus')) {
-      this.$inputor.focus();
-    }
-    overrides = this.getOpt('functionOverrides');
-    if (overrides.insert) {
-      return overrides.insert.call(this, content, $li);
-    }
-    suffix = (suffix = this.getOpt('suffix')) === "" ? suffix : suffix || "\u00A0";
-    data = $li.data('item-data');
-    this.query.el.removeClass('atwho-query').addClass('atwho-inserted').html(content).attr('data-atwho-at-query', "" + data['atwho-at'] + this.query.text).attr('contenteditable', "false");
-    if (range = this._getRange()) {
-      if (this.query.el.length) {
-        range.setEndAfter(this.query.el[0]);
-      }
-      range.collapse(false);
-      range.insertNode(suffixNode = this.app.document.createTextNode("" + suffix));
-      this._setRange('after', suffixNode, range);
-    }
-    if (!this.$inputor.is(':focus')) {
-      this.$inputor.focus();
-    }
-    return this.$inputor.change();
-  };
-
-  return EditableController;
-
-})(Controller);
-
-var Model;
-
-Model = (function() {
-  function Model(context) {
-    this.context = context;
-    this.at = this.context.at;
-    this.storage = this.context.$inputor;
-  }
-
-  Model.prototype.destroy = function() {
-    return this.storage.data(this.at, null);
-  };
-
-  Model.prototype.saved = function() {
-    return this.fetch() > 0;
-  };
-
-  Model.prototype.query = function(query, callback) {
-    var _remoteFilter, data, searchKey;
-    data = this.fetch();
-    searchKey = this.context.getOpt("searchKey");
-    data = this.context.callbacks('filter').call(this.context, query, data, searchKey) || [];
-    _remoteFilter = this.context.callbacks('remoteFilter');
-    if (data.length > 0 || (!_remoteFilter && data.length === 0)) {
-      return callback(data);
-    } else {
-      return _remoteFilter.call(this.context, query, callback);
-    }
-  };
-
-  Model.prototype.fetch = function() {
-    return this.storage.data(this.at) || [];
-  };
-
-  Model.prototype.save = function(data) {
-    return this.storage.data(this.at, this.context.callbacks("beforeSave").call(this.context, data || []));
-  };
-
-  Model.prototype.load = function(data) {
-    if (!(this.saved() || !data)) {
-      return this._load(data);
-    }
-  };
-
-  Model.prototype.reload = function(data) {
-    return this._load(data);
-  };
-
-  Model.prototype._load = function(data) {
-    if (typeof data === "string") {
-      return $.ajax(data, {
-        dataType: "json"
-      }).done((function(_this) {
-        return function(data) {
-          return _this.save(data);
-        };
-      })(this));
-    } else {
-      return this.save(data);
-    }
-  };
-
-  return Model;
-
-})();
-
-var View;
-
-View = (function() {
-  function View(context) {
-    this.context = context;
-    this.$el = $("<div class='atwho-view'><ul class='atwho-view-ul'></ul></div>");
-    this.$elUl = this.$el.children();
-    this.timeoutID = null;
-    this.context.$el.append(this.$el);
-    this.bindEvent();
-  }
-
-  View.prototype.init = function() {
-    var header_tpl, id;
-    id = this.context.getOpt("alias") || this.context.at.charCodeAt(0);
-    header_tpl = this.context.getOpt("headerTpl");
-    if (header_tpl && this.$el.children().length === 1) {
-      this.$el.prepend(header_tpl);
-    }
-    return this.$el.attr({
-      'id': "at-view-" + id
-    });
-  };
-
-  View.prototype.destroy = function() {
-    return this.$el.remove();
-  };
-
-  View.prototype.bindEvent = function() {
-    var $menu, lastCoordX, lastCoordY;
-    $menu = this.$el.find('ul');
-    lastCoordX = 0;
-    lastCoordY = 0;
-    return $menu.on('mousemove.atwho-view', 'li', (function(_this) {
-      return function(e) {
-        var $cur;
-        if (lastCoordX === e.clientX && lastCoordY === e.clientY) {
-          return;
-        }
-        lastCoordX = e.clientX;
-        lastCoordY = e.clientY;
-        $cur = $(e.currentTarget);
-        if ($cur.hasClass('cur')) {
-          return;
-        }
-        $menu.find('.cur').removeClass('cur');
-        return $cur.addClass('cur');
-      };
-    })(this)).on('click.atwho-view', 'li', (function(_this) {
-      return function(e) {
-        $menu.find('.cur').removeClass('cur');
-        $(e.currentTarget).addClass('cur');
-        _this.choose(e);
-        return e.preventDefault();
-      };
-    })(this));
-  };
-
-  View.prototype.visible = function() {
-    return $.expr.filters.visible(this.$el[0]);
-  };
-
-  View.prototype.highlighted = function() {
-    return this.$el.find(".cur").length > 0;
-  };
-
-  View.prototype.choose = function(e) {
-    var $li, content;
-    if (($li = this.$el.find(".cur")).length) {
-      content = this.context.insertContentFor($li);
-      this.context._stopDelayedCall();
-      this.context.insert(this.context.callbacks("beforeInsert").call(this.context, content, $li, e), $li);
-      this.context.trigger("inserted", [$li, e]);
-      this.hide(e);
-    }
-    if (this.context.getOpt("hideWithoutSuffix")) {
-      return this.stopShowing = true;
-    }
-  };
-
-  View.prototype.reposition = function(rect) {
-    var _window, offset, overflowOffset, ref;
-    _window = this.context.app.iframeAsRoot ? this.context.app.window : window;
-    if (rect.bottom + this.$el.height() - $(_window).scrollTop() > $(_window).height()) {
-      rect.bottom = rect.top - this.$el.height();
-    }
-    if (rect.left > (overflowOffset = $(_window).width() - this.$el.width() - 5)) {
-      rect.left = overflowOffset;
-    }
-    offset = {
-      left: rect.left,
-      top: rect.bottom
-    };
-    if ((ref = this.context.callbacks("beforeReposition")) != null) {
-      ref.call(this.context, offset);
-    }
-    this.$el.offset(offset);
-    return this.context.trigger("reposition", [offset]);
-  };
-
-  View.prototype.next = function() {
-    var cur, next, nextEl, offset;
-    cur = this.$el.find('.cur').removeClass('cur');
-    next = cur.next();
-    if (!next.length) {
-      next = this.$el.find('li:first');
-    }
-    next.addClass('cur');
-    nextEl = next[0];
-    offset = nextEl.offsetTop + nextEl.offsetHeight + (nextEl.nextSibling ? nextEl.nextSibling.offsetHeight : 0);
-    return this.scrollTop(Math.max(0, offset - this.$el.height()));
-  };
-
-  View.prototype.prev = function() {
-    var cur, offset, prev, prevEl;
-    cur = this.$el.find('.cur').removeClass('cur');
-    prev = cur.prev();
-    if (!prev.length) {
-      prev = this.$el.find('li:last');
-    }
-    prev.addClass('cur');
-    prevEl = prev[0];
-    offset = prevEl.offsetTop + prevEl.offsetHeight + (prevEl.nextSibling ? prevEl.nextSibling.offsetHeight : 0);
-    return this.scrollTop(Math.max(0, offset - this.$el.height()));
-  };
-
-  View.prototype.scrollTop = function(scrollTop) {
-    var scrollDuration;
-    scrollDuration = this.context.getOpt('scrollDuration');
-    if (scrollDuration) {
-      return this.$elUl.animate({
-        scrollTop: scrollTop
-      }, scrollDuration);
-    } else {
-      return this.$elUl.scrollTop(scrollTop);
-    }
-  };
-
-  View.prototype.show = function() {
-    var rect;
-    if (this.stopShowing) {
-      this.stopShowing = false;
-      return;
-    }
-    if (!this.visible()) {
-      this.$el.show();
-      this.$el.scrollTop(0);
-      this.context.trigger('shown');
-    }
-    if (rect = this.context.rect()) {
-      return this.reposition(rect);
-    }
-  };
-
-  View.prototype.hide = function(e, time) {
-    var callback;
-    if (!this.visible()) {
-      return;
-    }
-    if (isNaN(time)) {
-      this.$el.hide();
-      return this.context.trigger('hidden', [e]);
-    } else {
-      callback = (function(_this) {
-        return function() {
-          return _this.hide();
-        };
-      })(this);
-      clearTimeout(this.timeoutID);
-      return this.timeoutID = setTimeout(callback, time);
-    }
-  };
-
-  View.prototype.render = function(list) {
-    var $li, $ul, i, item, len, li, tpl;
-    if (!($.isArray(list) && list.length > 0)) {
-      this.hide();
-      return;
-    }
-    this.$el.find('ul').empty();
-    $ul = this.$el.find('ul');
-    tpl = this.context.getOpt('displayTpl');
-    for (i = 0, len = list.length; i < len; i++) {
-      item = list[i];
-      item = $.extend({}, item, {
-        'atwho-at': this.context.at
-      });
-      li = this.context.callbacks("tplEval").call(this.context, tpl, item, "onDisplay");
-      $li = $(this.context.callbacks("highlighter").call(this.context, li, this.context.query.text));
-      $li.data("item-data", item);
-      $ul.append($li);
-    }
-    this.show();
-    if (this.context.getOpt('highlightFirst')) {
-      return $ul.find("li:first").addClass("cur");
-    }
-  };
-
-  return View;
-
-})();
-
-var Api;
-
-Api = {
-  load: function(at, data) {
-    var c;
-    if (c = this.controller(at)) {
-      return c.model.load(data);
-    }
-  },
-  isSelecting: function() {
-    var ref;
-    return !!((ref = this.controller()) != null ? ref.view.visible() : void 0);
-  },
-  hide: function() {
-    var ref;
-    return (ref = this.controller()) != null ? ref.view.hide() : void 0;
-  },
-  reposition: function() {
-    var c;
-    if (c = this.controller()) {
-      return c.view.reposition(c.rect());
-    }
-  },
-  setIframe: function(iframe, asRoot) {
-    this.setupRootElement(iframe, asRoot);
-    return null;
-  },
-  run: function() {
-    return this.dispatch();
-  },
-  destroy: function() {
-    this.shutdown();
-    return this.$inputor.data('atwho', null);
-  }
-};
-
-$.fn.atwho = function(method) {
-  var _args, result;
-  _args = arguments;
-  result = null;
-  this.filter('textarea, input, [contenteditable=""], [contenteditable=true]').each(function() {
-    var $this, app;
-    if (!(app = ($this = $(this)).data("atwho"))) {
-      $this.data('atwho', (app = new App(this)));
-    }
-    if (typeof method === 'object' || !method) {
-      return app.reg(method.at, method);
-    } else if (Api[method] && app) {
-      return result = Api[method].apply(app, Array.prototype.slice.call(_args, 1));
-    } else {
-      return $.error("Method " + method + " does not exist on jQuery.atwho");
-    }
-  });
-  if (result != null) {
-    return result;
-  } else {
-    return this;
-  }
-};
-
-$.fn.atwho["default"] = {
-  at: void 0,
-  alias: void 0,
-  data: null,
-  displayTpl: "<li>${name}</li>",
-  insertTpl: "${atwho-at}${name}",
-  headerTpl: null,
-  callbacks: DEFAULT_CALLBACKS,
-  functionOverrides: {},
-  searchKey: "name",
-  suffix: void 0,
-  hideWithoutSuffix: false,
-  startWithSpace: true,
-  acceptSpaceBar: false,
-  highlightFirst: true,
-  limit: 5,
-  maxLen: 20,
-  minLen: 0,
-  displayTimeout: 300,
-  delay: null,
-  spaceSelectsMatch: false,
-  tabSelectsMatch: true,
-  editableAtwhoQueryAttrs: {},
-  scrollDuration: 150,
-  suspendOnComposing: true,
-  lookUpOnClick: true
-};
-
-$.fn.atwho.debug = false;
-
-}));
-
-
-/***/ }),
-
 /***/ "./node_modules/axios/index.js":
 /*!*************************************!*\
   !*** ./node_modules/axios/index.js ***!
@@ -3131,6 +1911,98 @@ module.exports = {
 
 /***/ }),
 
+/***/ "./node_modules/babel-loader/lib/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/AvatarForm.vue?vue&type=script&lang=js&":
+/*!*********************************************************************************************************************************************************************!*\
+  !*** ./node_modules/babel-loader/lib??ref--4-0!./node_modules/vue-loader/lib??vue-loader-options!./resources/js/components/AvatarForm.vue?vue&type=script&lang=js& ***!
+  \*********************************************************************************************************************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js");
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _ImageUpload__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./ImageUpload */ "./resources/js/components/ImageUpload.vue");
+
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
+//
+//
+//
+//
+//
+//
+//
+//
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+  props: ["user"],
+  components: {
+    ImageUpload: _ImageUpload__WEBPACK_IMPORTED_MODULE_1__["default"]
+  },
+  computed: {
+    canUpdate: function canUpdate() {
+      var _this = this;
+
+      return this.authorize(function (signegUser) {
+        return _this.user.id === signegUser.id;
+      });
+    }
+  },
+  data: function data() {
+    return {
+      avatar: ""
+    };
+  },
+  mounted: function mounted() {
+    this.avatar = this.user.avatar_path;
+  },
+  methods: {
+    onLoad: function onLoad(avatar) {
+      this.avatar = avatar.src;
+      this.persist(avatar.file);
+    },
+    persist: function persist(file) {
+      var _this2 = this;
+
+      return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee() {
+        var data;
+        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                data = new FormData();
+                data.append("avatar", file);
+                _context.prev = 2;
+                _context.next = 5;
+                return axios.post("/api/users/".concat(_this2.user.id, "/avatar"), data);
+
+              case 5:
+                flash("added !");
+                _context.next = 11;
+                break;
+
+              case 8:
+                _context.prev = 8;
+                _context.t0 = _context["catch"](2);
+                flash("An Error occured please try again later", "danger");
+
+              case 11:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, null, [[2, 8]]);
+      }))();
+    }
+  }
+});
+
+/***/ }),
+
 /***/ "./node_modules/babel-loader/lib/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/Favourite.vue?vue&type=script&lang=js&":
 /*!********************************************************************************************************************************************************************!*\
   !*** ./node_modules/babel-loader/lib??ref--4-0!./node_modules/vue-loader/lib??vue-loader-options!./resources/js/components/Favourite.vue?vue&type=script&lang=js& ***!
@@ -3310,6 +2182,43 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
+/***/ "./node_modules/babel-loader/lib/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/ImageUpload.vue?vue&type=script&lang=js&":
+/*!**********************************************************************************************************************************************************************!*\
+  !*** ./node_modules/babel-loader/lib??ref--4-0!./node_modules/vue-loader/lib??vue-loader-options!./resources/js/components/ImageUpload.vue?vue&type=script&lang=js& ***!
+  \**********************************************************************************************************************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+//
+//
+//
+//
+/* harmony default export */ __webpack_exports__["default"] = ({
+  methods: {
+    onImageSelected: function onImageSelected(e) {
+      var _this = this;
+
+      if (!e.target.files.length) return;
+      var file = e.target.files[0];
+      var reader = new FileReader();
+      reader.readAsDataURL(file);
+
+      reader.onload = function (e) {
+        var src = e.target.result;
+
+        _this.$emit("loaded", {
+          file: file,
+          src: src
+        });
+      };
+    }
+  }
+});
+
+/***/ }),
+
 /***/ "./node_modules/babel-loader/lib/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/NewReply.vue?vue&type=script&lang=js&":
 /*!*******************************************************************************************************************************************************************!*\
   !*** ./node_modules/babel-loader/lib??ref--4-0!./node_modules/vue-loader/lib??vue-loader-options!./resources/js/components/NewReply.vue?vue&type=script&lang=js& ***!
@@ -3319,10 +2228,18 @@ __webpack_require__.r(__webpack_exports__);
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var jquery_caret__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! jquery.caret */ "./node_modules/jquery.caret/dist/jquery.caret.js");
-/* harmony import */ var jquery_caret__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(jquery_caret__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var at_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! at.js */ "./node_modules/at.js/dist/js/jquery.atwho.js");
-/* harmony import */ var at_js__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(at_js__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js");
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var tributejs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! tributejs */ "./node_modules/tributejs/dist/tribute.min.js");
+/* harmony import */ var tributejs__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(tributejs__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! lodash */ "./node_modules/lodash/lodash.js");
+/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(lodash__WEBPACK_IMPORTED_MODULE_2__);
+
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
 //
 //
 //
@@ -3364,26 +2281,21 @@ __webpack_require__.r(__webpack_exports__);
   },
   created: function created() {},
   mounted: function mounted() {
-    $('#body').atwho({
-      at: "@",
-      delay: 2000,
-      callbacks: {
-        remoteFilter: function remoteFilter(query, callback) {
-          $.getJSON("/api/users", {
-            name: query
-          }, function (usernames) {
-            callback(usernames);
-          });
-        }
-      }
+    var tribute = new tributejs__WEBPACK_IMPORTED_MODULE_1___default.a({
+      //..other config options
+      // function retrieving an array of objects
+      values: lodash__WEBPACK_IMPORTED_MODULE_2___default.a.debounce(this.loadData.bind(this), 1000),
+      lookup: 'value',
+      fillAttr: 'value',
+      noMatchTemplate: ""
     });
+    tribute.attach(document.querySelectorAll("#body"));
   },
   methods: {
     addReply: function addReply() {
       var _this = this;
 
       if (this.body.trim() !== "") {
-        this.body = this.body.trim() + 's';
         axios.post(location.pathname + '/replies', {
           body: this.body
         }).then(function (_ref) {
@@ -3406,6 +2318,39 @@ __webpack_require__.r(__webpack_exports__);
       } else {
         this.error = true;
       }
+    },
+    loadData: function loadData(query, cb) {
+      return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee() {
+        var _yield$axios$get, names, result;
+
+        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                _context.next = 2;
+                return axios.get('/api/users', {
+                  params: {
+                    name: query
+                  }
+                });
+
+              case 2:
+                _yield$axios$get = _context.sent;
+                names = _yield$axios$get.data;
+                result = names.map(function (name) {
+                  return {
+                    value: name
+                  };
+                });
+                cb(result);
+
+              case 6:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee);
+      }))();
     },
     onChangeHandler: function onChangeHandler() {
       this.error = false;
@@ -8579,447 +7524,6 @@ function toComment(sourceMap) {
 
 	return '/*# ' + data + ' */';
 }
-
-
-/***/ }),
-
-/***/ "./node_modules/jquery.caret/dist/jquery.caret.js":
-/*!********************************************************!*\
-  !*** ./node_modules/jquery.caret/dist/jquery.caret.js ***!
-  \********************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function (root, factory) {
-  if (true) {
-    // AMD. Register as an anonymous module.
-    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js")], __WEBPACK_AMD_DEFINE_RESULT__ = (function ($) {
-      return (root.returnExportsGlobal = factory($));
-    }).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
-				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-  } else {}
-}(this, function ($) {
-
-/*
-  Implement Github like autocomplete mentions
-  http://ichord.github.com/At.js
-
-  Copyright (c) 2013 chord.luo@gmail.com
-  Licensed under the MIT license.
-*/
-
-/*
-本插件操作 textarea 或者 input 内的插入符
-只实现了获得插入符在文本框中的位置，我设置
-插入符的位置.
-*/
-
-"use strict";
-var EditableCaret, InputCaret, Mirror, Utils, discoveryIframeOf, methods, oDocument, oFrame, oWindow, pluginName, setContextBy;
-
-pluginName = 'caret';
-
-EditableCaret = (function() {
-  function EditableCaret($inputor) {
-    this.$inputor = $inputor;
-    this.domInputor = this.$inputor[0];
-  }
-
-  EditableCaret.prototype.setPos = function(pos) {
-    var fn, found, offset, sel;
-    if (sel = oWindow.getSelection()) {
-      offset = 0;
-      found = false;
-      (fn = function(pos, parent) {
-        var node, range, _i, _len, _ref, _results;
-        _ref = parent.childNodes;
-        _results = [];
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          node = _ref[_i];
-          if (found) {
-            break;
-          }
-          if (node.nodeType === 3) {
-            if (offset + node.length >= pos) {
-              found = true;
-              range = oDocument.createRange();
-              range.setStart(node, pos - offset);
-              sel.removeAllRanges();
-              sel.addRange(range);
-              break;
-            } else {
-              _results.push(offset += node.length);
-            }
-          } else {
-            _results.push(fn(pos, node));
-          }
-        }
-        return _results;
-      })(pos, this.domInputor);
-    }
-    return this.domInputor;
-  };
-
-  EditableCaret.prototype.getIEPosition = function() {
-    return this.getPosition();
-  };
-
-  EditableCaret.prototype.getPosition = function() {
-    var inputor_offset, offset;
-    offset = this.getOffset();
-    inputor_offset = this.$inputor.offset();
-    offset.left -= inputor_offset.left;
-    offset.top -= inputor_offset.top;
-    return offset;
-  };
-
-  EditableCaret.prototype.getOldIEPos = function() {
-    var preCaretTextRange, textRange;
-    textRange = oDocument.selection.createRange();
-    preCaretTextRange = oDocument.body.createTextRange();
-    preCaretTextRange.moveToElementText(this.domInputor);
-    preCaretTextRange.setEndPoint("EndToEnd", textRange);
-    return preCaretTextRange.text.length;
-  };
-
-  EditableCaret.prototype.getPos = function() {
-    var clonedRange, pos, range;
-    if (range = this.range()) {
-      clonedRange = range.cloneRange();
-      clonedRange.selectNodeContents(this.domInputor);
-      clonedRange.setEnd(range.endContainer, range.endOffset);
-      pos = clonedRange.toString().length;
-      clonedRange.detach();
-      return pos;
-    } else if (oDocument.selection) {
-      return this.getOldIEPos();
-    }
-  };
-
-  EditableCaret.prototype.getOldIEOffset = function() {
-    var range, rect;
-    range = oDocument.selection.createRange().duplicate();
-    range.moveStart("character", -1);
-    rect = range.getBoundingClientRect();
-    return {
-      height: rect.bottom - rect.top,
-      left: rect.left,
-      top: rect.top
-    };
-  };
-
-  EditableCaret.prototype.getOffset = function(pos) {
-    var clonedRange, offset, range, rect, shadowCaret;
-    if (oWindow.getSelection && (range = this.range())) {
-      if (range.endOffset - 1 > 0 && range.endContainer !== this.domInputor) {
-        clonedRange = range.cloneRange();
-        clonedRange.setStart(range.endContainer, range.endOffset - 1);
-        clonedRange.setEnd(range.endContainer, range.endOffset);
-        rect = clonedRange.getBoundingClientRect();
-        offset = {
-          height: rect.height,
-          left: rect.left + rect.width,
-          top: rect.top
-        };
-        clonedRange.detach();
-      }
-      if (!offset || (offset != null ? offset.height : void 0) === 0) {
-        clonedRange = range.cloneRange();
-        shadowCaret = $(oDocument.createTextNode("|"));
-        clonedRange.insertNode(shadowCaret[0]);
-        clonedRange.selectNode(shadowCaret[0]);
-        rect = clonedRange.getBoundingClientRect();
-        offset = {
-          height: rect.height,
-          left: rect.left,
-          top: rect.top
-        };
-        shadowCaret.remove();
-        clonedRange.detach();
-      }
-    } else if (oDocument.selection) {
-      offset = this.getOldIEOffset();
-    }
-    if (offset) {
-      offset.top += $(oWindow).scrollTop();
-      offset.left += $(oWindow).scrollLeft();
-    }
-    return offset;
-  };
-
-  EditableCaret.prototype.range = function() {
-    var sel;
-    if (!oWindow.getSelection) {
-      return;
-    }
-    sel = oWindow.getSelection();
-    if (sel.rangeCount > 0) {
-      return sel.getRangeAt(0);
-    } else {
-      return null;
-    }
-  };
-
-  return EditableCaret;
-
-})();
-
-InputCaret = (function() {
-  function InputCaret($inputor) {
-    this.$inputor = $inputor;
-    this.domInputor = this.$inputor[0];
-  }
-
-  InputCaret.prototype.getIEPos = function() {
-    var endRange, inputor, len, normalizedValue, pos, range, textInputRange;
-    inputor = this.domInputor;
-    range = oDocument.selection.createRange();
-    pos = 0;
-    if (range && range.parentElement() === inputor) {
-      normalizedValue = inputor.value.replace(/\r\n/g, "\n");
-      len = normalizedValue.length;
-      textInputRange = inputor.createTextRange();
-      textInputRange.moveToBookmark(range.getBookmark());
-      endRange = inputor.createTextRange();
-      endRange.collapse(false);
-      if (textInputRange.compareEndPoints("StartToEnd", endRange) > -1) {
-        pos = len;
-      } else {
-        pos = -textInputRange.moveStart("character", -len);
-      }
-    }
-    return pos;
-  };
-
-  InputCaret.prototype.getPos = function() {
-    if (oDocument.selection) {
-      return this.getIEPos();
-    } else {
-      return this.domInputor.selectionStart;
-    }
-  };
-
-  InputCaret.prototype.setPos = function(pos) {
-    var inputor, range;
-    inputor = this.domInputor;
-    if (oDocument.selection) {
-      range = inputor.createTextRange();
-      range.move("character", pos);
-      range.select();
-    } else if (inputor.setSelectionRange) {
-      inputor.setSelectionRange(pos, pos);
-    }
-    return inputor;
-  };
-
-  InputCaret.prototype.getIEOffset = function(pos) {
-    var h, textRange, x, y;
-    textRange = this.domInputor.createTextRange();
-    pos || (pos = this.getPos());
-    textRange.move('character', pos);
-    x = textRange.boundingLeft;
-    y = textRange.boundingTop;
-    h = textRange.boundingHeight;
-    return {
-      left: x,
-      top: y,
-      height: h
-    };
-  };
-
-  InputCaret.prototype.getOffset = function(pos) {
-    var $inputor, offset, position;
-    $inputor = this.$inputor;
-    if (oDocument.selection) {
-      offset = this.getIEOffset(pos);
-      offset.top += $(oWindow).scrollTop() + $inputor.scrollTop();
-      offset.left += $(oWindow).scrollLeft() + $inputor.scrollLeft();
-      return offset;
-    } else {
-      offset = $inputor.offset();
-      position = this.getPosition(pos);
-      return offset = {
-        left: offset.left + position.left - $inputor.scrollLeft(),
-        top: offset.top + position.top - $inputor.scrollTop(),
-        height: position.height
-      };
-    }
-  };
-
-  InputCaret.prototype.getPosition = function(pos) {
-    var $inputor, at_rect, end_range, format, html, mirror, start_range;
-    $inputor = this.$inputor;
-    format = function(value) {
-      value = value.replace(/<|>|`|"|&/g, '?').replace(/\r\n|\r|\n/g, "<br/>");
-      if (/firefox/i.test(navigator.userAgent)) {
-        value = value.replace(/\s/g, '&nbsp;');
-      }
-      return value;
-    };
-    if (pos === void 0) {
-      pos = this.getPos();
-    }
-    start_range = $inputor.val().slice(0, pos);
-    end_range = $inputor.val().slice(pos);
-    html = "<span style='position: relative; display: inline;'>" + format(start_range) + "</span>";
-    html += "<span id='caret' style='position: relative; display: inline;'>|</span>";
-    html += "<span style='position: relative; display: inline;'>" + format(end_range) + "</span>";
-    mirror = new Mirror($inputor);
-    return at_rect = mirror.create(html).rect();
-  };
-
-  InputCaret.prototype.getIEPosition = function(pos) {
-    var h, inputorOffset, offset, x, y;
-    offset = this.getIEOffset(pos);
-    inputorOffset = this.$inputor.offset();
-    x = offset.left - inputorOffset.left;
-    y = offset.top - inputorOffset.top;
-    h = offset.height;
-    return {
-      left: x,
-      top: y,
-      height: h
-    };
-  };
-
-  return InputCaret;
-
-})();
-
-Mirror = (function() {
-  Mirror.prototype.css_attr = ["borderBottomWidth", "borderLeftWidth", "borderRightWidth", "borderTopStyle", "borderRightStyle", "borderBottomStyle", "borderLeftStyle", "borderTopWidth", "boxSizing", "fontFamily", "fontSize", "fontWeight", "height", "letterSpacing", "lineHeight", "marginBottom", "marginLeft", "marginRight", "marginTop", "outlineWidth", "overflow", "overflowX", "overflowY", "paddingBottom", "paddingLeft", "paddingRight", "paddingTop", "textAlign", "textOverflow", "textTransform", "whiteSpace", "wordBreak", "wordWrap"];
-
-  function Mirror($inputor) {
-    this.$inputor = $inputor;
-  }
-
-  Mirror.prototype.mirrorCss = function() {
-    var css,
-      _this = this;
-    css = {
-      position: 'absolute',
-      left: -9999,
-      top: 0,
-      zIndex: -20000
-    };
-    if (this.$inputor.prop('tagName') === 'TEXTAREA') {
-      this.css_attr.push('width');
-    }
-    $.each(this.css_attr, function(i, p) {
-      return css[p] = _this.$inputor.css(p);
-    });
-    return css;
-  };
-
-  Mirror.prototype.create = function(html) {
-    this.$mirror = $('<div></div>');
-    this.$mirror.css(this.mirrorCss());
-    this.$mirror.html(html);
-    this.$inputor.after(this.$mirror);
-    return this;
-  };
-
-  Mirror.prototype.rect = function() {
-    var $flag, pos, rect;
-    $flag = this.$mirror.find("#caret");
-    pos = $flag.position();
-    rect = {
-      left: pos.left,
-      top: pos.top,
-      height: $flag.height()
-    };
-    this.$mirror.remove();
-    return rect;
-  };
-
-  return Mirror;
-
-})();
-
-Utils = {
-  contentEditable: function($inputor) {
-    return !!($inputor[0].contentEditable && $inputor[0].contentEditable === 'true');
-  }
-};
-
-methods = {
-  pos: function(pos) {
-    if (pos || pos === 0) {
-      return this.setPos(pos);
-    } else {
-      return this.getPos();
-    }
-  },
-  position: function(pos) {
-    if (oDocument.selection) {
-      return this.getIEPosition(pos);
-    } else {
-      return this.getPosition(pos);
-    }
-  },
-  offset: function(pos) {
-    var offset;
-    offset = this.getOffset(pos);
-    return offset;
-  }
-};
-
-oDocument = null;
-
-oWindow = null;
-
-oFrame = null;
-
-setContextBy = function(settings) {
-  var iframe;
-  if (iframe = settings != null ? settings.iframe : void 0) {
-    oFrame = iframe;
-    oWindow = iframe.contentWindow;
-    return oDocument = iframe.contentDocument || oWindow.document;
-  } else {
-    oFrame = void 0;
-    oWindow = window;
-    return oDocument = document;
-  }
-};
-
-discoveryIframeOf = function($dom) {
-  var error;
-  oDocument = $dom[0].ownerDocument;
-  oWindow = oDocument.defaultView || oDocument.parentWindow;
-  try {
-    return oFrame = oWindow.frameElement;
-  } catch (_error) {
-    error = _error;
-  }
-};
-
-$.fn.caret = function(method, value, settings) {
-  var caret;
-  if (methods[method]) {
-    if ($.isPlainObject(value)) {
-      setContextBy(value);
-      value = void 0;
-    } else {
-      setContextBy(settings);
-    }
-    caret = Utils.contentEditable(this) ? new EditableCaret(this) : new InputCaret(this);
-    return methods[method].apply(caret, [value]);
-  } else {
-    return $.error("Method " + method + " does not exist on jQuery.caret");
-  }
-};
-
-$.fn.caret.EditableCaret = EditableCaret;
-
-$.fn.caret.InputCaret = InputCaret;
-
-$.fn.caret.Utils = Utils;
-
-$.fn.caret.apis = methods;
-
-
-}));
 
 
 /***/ }),
@@ -62713,6 +61217,19 @@ exports.clearImmediate = (typeof self !== "undefined" && self.clearImmediate) ||
 
 /***/ }),
 
+/***/ "./node_modules/tributejs/dist/tribute.min.js":
+/*!****************************************************!*\
+  !*** ./node_modules/tributejs/dist/tribute.min.js ***!
+  \****************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+!function(e,t){ true?module.exports=t():undefined}(this,(function(){"use strict";function e(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}function t(e,t){for(var n=0;n<t.length;n++){var i=t[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}function n(e,n,i){return n&&t(e.prototype,n),i&&t(e,i),e}function i(e,t){return function(e){if(Array.isArray(e))return e}(e)||function(e,t){if(!(Symbol.iterator in Object(e)||"[object Arguments]"===Object.prototype.toString.call(e)))return;var n=[],i=!0,r=!1,o=void 0;try{for(var u,l=e[Symbol.iterator]();!(i=(u=l.next()).done)&&(n.push(u.value),!t||n.length!==t);i=!0);}catch(e){r=!0,o=e}finally{try{i||null==l.return||l.return()}finally{if(r)throw o}}return n}(e,t)||function(){throw new TypeError("Invalid attempt to destructure non-iterable instance")}()}if(Array.prototype.find||(Array.prototype.find=function(e){if(null===this)throw new TypeError("Array.prototype.find called on null or undefined");if("function"!=typeof e)throw new TypeError("predicate must be a function");for(var t,n=Object(this),i=n.length>>>0,r=arguments[1],o=0;o<i;o++)if(t=n[o],e.call(r,t,o,n))return t}),window&&"function"!=typeof window.CustomEvent){var r=function(e,t){t=t||{bubbles:!1,cancelable:!1,detail:void 0};var n=document.createEvent("CustomEvent");return n.initCustomEvent(e,t.bubbles,t.cancelable,t.detail),n};void 0!==window.Event&&(r.prototype=window.Event.prototype),window.CustomEvent=r}var o=function(){function t(n){e(this,t),this.tribute=n,this.tribute.events=this}return n(t,[{key:"bind",value:function(e){e.boundKeydown=this.keydown.bind(e,this),e.boundKeyup=this.keyup.bind(e,this),e.boundInput=this.input.bind(e,this),e.addEventListener("keydown",e.boundKeydown,!1),e.addEventListener("keyup",e.boundKeyup,!1),e.addEventListener("input",e.boundInput,!1)}},{key:"unbind",value:function(e){e.removeEventListener("keydown",e.boundKeydown,!1),e.removeEventListener("keyup",e.boundKeyup,!1),e.removeEventListener("input",e.boundInput,!1),delete e.boundKeydown,delete e.boundKeyup,delete e.boundInput}},{key:"keydown",value:function(e,n){e.shouldDeactivate(n)&&(e.tribute.isActive=!1,e.tribute.hideMenu());var i=this;e.commandEvent=!1,t.keys().forEach((function(t){t.key===n.keyCode&&(e.commandEvent=!0,e.callbacks()[t.value.toLowerCase()](n,i))}))}},{key:"input",value:function(e,t){e.inputEvent=!0,e.keyup.call(this,e,t)}},{key:"click",value:function(e,t){var n=e.tribute;if(n.menu&&n.menu.contains(t.target)){var i=t.target;for(t.preventDefault(),t.stopPropagation();"li"!==i.nodeName.toLowerCase();)if(!(i=i.parentNode)||i===n.menu)throw new Error("cannot find the <li> container for the click");n.selectItemAtIndex(i.getAttribute("data-index"),t),n.hideMenu()}else n.current.element&&!n.current.externalTrigger&&(n.current.externalTrigger=!1,setTimeout((function(){return n.hideMenu()})))}},{key:"keyup",value:function(e,t){if(e.inputEvent&&(e.inputEvent=!1),e.updateSelection(this),27!==t.keyCode){if(!e.tribute.allowSpaces&&e.tribute.hasTrailingSpace)return e.tribute.hasTrailingSpace=!1,e.commandEvent=!0,void e.callbacks().space(t,this);if(!e.tribute.isActive)if(e.tribute.autocompleteMode)e.callbacks().triggerChar(t,this,"");else{var n=e.getKeyCode(e,this,t);if(isNaN(n)||!n)return;var i=e.tribute.triggers().find((function(e){return e.charCodeAt(0)===n}));void 0!==i&&e.callbacks().triggerChar(t,this,i)}e.tribute.current.mentionText.length<e.tribute.current.collection.menuShowMinLength||((e.tribute.current.trigger||e.tribute.autocompleteMode)&&!1===e.commandEvent||e.tribute.isActive&&8===t.keyCode)&&e.tribute.showMenuFor(this,!0)}}},{key:"shouldDeactivate",value:function(e){if(!this.tribute.isActive)return!1;if(0===this.tribute.current.mentionText.length){var n=!1;return t.keys().forEach((function(t){e.keyCode===t.key&&(n=!0)})),!n}return!1}},{key:"getKeyCode",value:function(e,t,n){var i=e.tribute,r=i.range.getTriggerInfo(!1,i.hasTrailingSpace,!0,i.allowSpaces,i.autocompleteMode);return!!r&&r.mentionTriggerChar.charCodeAt(0)}},{key:"updateSelection",value:function(e){this.tribute.current.element=e;var t=this.tribute.range.getTriggerInfo(!1,this.tribute.hasTrailingSpace,!0,this.tribute.allowSpaces,this.tribute.autocompleteMode);t&&(this.tribute.current.selectedPath=t.mentionSelectedPath,this.tribute.current.mentionText=t.mentionText,this.tribute.current.selectedOffset=t.mentionSelectedOffset)}},{key:"callbacks",value:function(){var e=this;return{triggerChar:function(t,n,i){var r=e.tribute;r.current.trigger=i;var o=r.collection.find((function(e){return e.trigger===i}));r.current.collection=o,r.current.mentionText.length>=r.current.collection.menuShowMinLength&&r.inputEvent&&r.showMenuFor(n,!0)},enter:function(t,n){e.tribute.isActive&&e.tribute.current.filteredItems&&(t.preventDefault(),t.stopPropagation(),setTimeout((function(){e.tribute.selectItemAtIndex(e.tribute.menuSelected,t),e.tribute.hideMenu()}),0))},escape:function(t,n){e.tribute.isActive&&(t.preventDefault(),t.stopPropagation(),e.tribute.isActive=!1,e.tribute.hideMenu())},tab:function(t,n){e.callbacks().enter(t,n)},space:function(t,n){e.tribute.isActive&&(e.tribute.spaceSelectsMatch?e.callbacks().enter(t,n):e.tribute.allowSpaces||(t.stopPropagation(),setTimeout((function(){e.tribute.hideMenu(),e.tribute.isActive=!1}),0)))},up:function(t,n){if(e.tribute.isActive&&e.tribute.current.filteredItems){t.preventDefault(),t.stopPropagation();var i=e.tribute.current.filteredItems.length,r=e.tribute.menuSelected;i>r&&r>0?(e.tribute.menuSelected--,e.setActiveLi()):0===r&&(e.tribute.menuSelected=i-1,e.setActiveLi(),e.tribute.menu.scrollTop=e.tribute.menu.scrollHeight)}},down:function(t,n){if(e.tribute.isActive&&e.tribute.current.filteredItems){t.preventDefault(),t.stopPropagation();var i=e.tribute.current.filteredItems.length-1,r=e.tribute.menuSelected;i>r?(e.tribute.menuSelected++,e.setActiveLi()):i===r&&(e.tribute.menuSelected=0,e.setActiveLi(),e.tribute.menu.scrollTop=0)}},delete:function(t,n){e.tribute.isActive&&e.tribute.current.mentionText.length<1?e.tribute.hideMenu():e.tribute.isActive&&e.tribute.showMenuFor(n)}}}},{key:"setActiveLi",value:function(e){var t=this.tribute.menu.querySelectorAll("li"),n=t.length>>>0;e&&(this.tribute.menuSelected=parseInt(e));for(var i=0;i<n;i++){var r=t[i];if(i===this.tribute.menuSelected){r.classList.add(this.tribute.current.collection.selectClass);var o=r.getBoundingClientRect(),u=this.tribute.menu.getBoundingClientRect();if(o.bottom>u.bottom){var l=o.bottom-u.bottom;this.tribute.menu.scrollTop+=l}else if(o.top<u.top){var s=u.top-o.top;this.tribute.menu.scrollTop-=s}}else r.classList.remove(this.tribute.current.collection.selectClass)}}},{key:"getFullHeight",value:function(e,t){var n=e.getBoundingClientRect().height;if(t){var i=e.currentStyle||window.getComputedStyle(e);return n+parseFloat(i.marginTop)+parseFloat(i.marginBottom)}return n}}],[{key:"keys",value:function(){return[{key:9,value:"TAB"},{key:8,value:"DELETE"},{key:13,value:"ENTER"},{key:27,value:"ESCAPE"},{key:32,value:"SPACE"},{key:38,value:"UP"},{key:40,value:"DOWN"}]}}]),t}(),u=function(){function t(n){e(this,t),this.tribute=n,this.tribute.menuEvents=this,this.menu=this.tribute.menu}return n(t,[{key:"bind",value:function(e){var t=this;this.menuClickEvent=this.tribute.events.click.bind(null,this),this.menuContainerScrollEvent=this.debounce((function(){t.tribute.isActive&&t.tribute.showMenuFor(t.tribute.current.element,!1)}),300,!1),this.windowResizeEvent=this.debounce((function(){t.tribute.isActive&&t.tribute.range.positionMenuAtCaret(!0)}),300,!1),this.tribute.range.getDocument().addEventListener("MSPointerDown",this.menuClickEvent,!1),this.tribute.range.getDocument().addEventListener("mousedown",this.menuClickEvent,!1),window.addEventListener("resize",this.windowResizeEvent),this.menuContainer?this.menuContainer.addEventListener("scroll",this.menuContainerScrollEvent,!1):window.addEventListener("scroll",this.menuContainerScrollEvent)}},{key:"unbind",value:function(e){this.tribute.range.getDocument().removeEventListener("mousedown",this.menuClickEvent,!1),this.tribute.range.getDocument().removeEventListener("MSPointerDown",this.menuClickEvent,!1),window.removeEventListener("resize",this.windowResizeEvent),this.menuContainer?this.menuContainer.removeEventListener("scroll",this.menuContainerScrollEvent,!1):window.removeEventListener("scroll",this.menuContainerScrollEvent)}},{key:"debounce",value:function(e,t,n){var i,r=arguments,o=this;return function(){var u=o,l=r,s=n&&!i;clearTimeout(i),i=setTimeout((function(){i=null,n||e.apply(u,l)}),t),s&&e.apply(u,l)}}}]),t}(),l=function(){function t(n){e(this,t),this.tribute=n,this.tribute.range=this}return n(t,[{key:"getDocument",value:function(){var e;return this.tribute.current.collection&&(e=this.tribute.current.collection.iframe),e?e.contentWindow.document:document}},{key:"positionMenuAtCaret",value:function(e){var t,n=this,i=this.tribute.current,r=this.getTriggerInfo(!1,this.tribute.hasTrailingSpace,!0,this.tribute.allowSpaces,this.tribute.autocompleteMode);if(void 0!==r){if(!this.tribute.positionMenu)return void(this.tribute.menu.style.cssText="display: block;");t=this.isContentEditable(i.element)?this.getContentEditableCaretPosition(r.mentionPosition):this.getTextAreaOrInputUnderlinePosition(this.tribute.current.element,r.mentionPosition),this.tribute.menu.style.cssText="top: ".concat(t.top,"px;\n                                     left: ").concat(t.left,"px;\n                                     right: ").concat(t.right,"px;\n                                     bottom: ").concat(t.bottom,"px;\n                                     position: absolute;\n                                     display: block;"),"auto"===t.left&&(this.tribute.menu.style.left="auto"),"auto"===t.top&&(this.tribute.menu.style.top="auto"),e&&this.scrollIntoView(),window.setTimeout((function(){var i={width:n.tribute.menu.offsetWidth,height:n.tribute.menu.offsetHeight},r=n.isMenuOffScreen(t,i),o=window.innerWidth>i.width&&(r.left||r.right),u=window.innerHeight>i.height&&(r.top||r.bottom);(o||u)&&(n.tribute.menu.style.cssText="display: none",n.positionMenuAtCaret(e))}),0)}else this.tribute.menu.style.cssText="display: none"}},{key:"selectElement",value:function(e,t,n){var i,r=e;if(t)for(var o=0;o<t.length;o++){if(void 0===(r=r.childNodes[t[o]]))return;for(;r.length<n;)n-=r.length,r=r.nextSibling;0!==r.childNodes.length||r.length||(r=r.previousSibling)}var u=this.getWindowSelection();(i=this.getDocument().createRange()).setStart(r,n),i.setEnd(r,n),i.collapse(!0);try{u.removeAllRanges()}catch(e){}u.addRange(i),e.focus()}},{key:"replaceTriggerText",value:function(e,t,n,i,r){var o=this.getTriggerInfo(!0,n,t,this.tribute.allowSpaces,this.tribute.autocompleteMode);if(void 0!==o){var u=this.tribute.current,l=new CustomEvent("tribute-replaced",{detail:{item:r,instance:u,context:o,event:i}});if(this.isContentEditable(u.element)){e+="string"==typeof this.tribute.replaceTextSuffix?this.tribute.replaceTextSuffix:" ";var s=o.mentionPosition+o.mentionText.length;this.tribute.autocompleteMode||(s+=o.mentionTriggerChar.length),this.pasteHtml(e,o.mentionPosition,s)}else{var a=this.tribute.current.element,c="string"==typeof this.tribute.replaceTextSuffix?this.tribute.replaceTextSuffix:" ";e+=c;var h=o.mentionPosition,d=o.mentionPosition+o.mentionText.length+c.length;this.tribute.autocompleteMode||(d+=o.mentionTriggerChar.length-1),a.value=a.value.substring(0,h)+e+a.value.substring(d,a.value.length),a.selectionStart=h+e.length,a.selectionEnd=h+e.length}u.element.dispatchEvent(new CustomEvent("input",{bubbles:!0})),u.element.dispatchEvent(l)}}},{key:"pasteHtml",value:function(e,t,n){var i,r;r=this.getWindowSelection(),(i=this.getDocument().createRange()).setStart(r.anchorNode,t),i.setEnd(r.anchorNode,n),i.deleteContents();var o=this.getDocument().createElement("div");o.innerHTML=e;for(var u,l,s=this.getDocument().createDocumentFragment();u=o.firstChild;)l=s.appendChild(u);i.insertNode(s),l&&((i=i.cloneRange()).setStartAfter(l),i.collapse(!0),r.removeAllRanges(),r.addRange(i))}},{key:"getWindowSelection",value:function(){return this.tribute.collection.iframe?this.tribute.collection.iframe.contentWindow.getSelection():window.getSelection()}},{key:"getNodePositionInParent",value:function(e){if(null===e.parentNode)return 0;for(var t=0;t<e.parentNode.childNodes.length;t++){if(e.parentNode.childNodes[t]===e)return t}}},{key:"getContentEditableSelectedPath",value:function(e){var t=this.getWindowSelection(),n=t.anchorNode,i=[];if(null!=n){for(var r,o=n.contentEditable;null!==n&&"true"!==o;)r=this.getNodePositionInParent(n),i.push(r),null!==(n=n.parentNode)&&(o=n.contentEditable);return i.reverse(),{selected:n,path:i,offset:t.getRangeAt(0).startOffset}}}},{key:"getTextPrecedingCurrentSelection",value:function(){var e=this.tribute.current,t="";if(this.isContentEditable(e.element)){var n=this.getWindowSelection().anchorNode;if(null!=n){var i=n.textContent,r=this.getWindowSelection().getRangeAt(0).startOffset;i&&r>=0&&(t=i.substring(0,r))}}else{var o=this.tribute.current.element;if(o){var u=o.selectionStart;o.value&&u>=0&&(t=o.value.substring(0,u))}}return t}},{key:"getLastWordInText",value:function(e){var t=(e=e.replace(/\u00A0/g," ")).split(/\s+/);return t[t.length-1].trim()}},{key:"getTriggerInfo",value:function(e,t,n,i,r){var o,u,l,s=this,a=this.tribute.current;if(this.isContentEditable(a.element)){var c=this.getContentEditableSelectedPath(a);c&&(o=c.selected,u=c.path,l=c.offset)}else o=this.tribute.current.element;var h=this.getTextPrecedingCurrentSelection(),d=this.getLastWordInText(h);if(r)return{mentionPosition:h.length-d.length,mentionText:d,mentionSelectedElement:o,mentionSelectedPath:u,mentionSelectedOffset:l};if(null!=h){var f,m=-1;if(this.tribute.collection.forEach((function(e){var t=e.trigger,i=e.requireLeadingSpace?s.lastIndexWithLeadingSpace(h,t):h.lastIndexOf(t);i>m&&(m=i,f=t,n=e.requireLeadingSpace)})),m>=0&&(0===m||!n||/[\xA0\s]/g.test(h.substring(m-1,m)))){var p=h.substring(m+f.length,h.length);f=h.substring(m,m+f.length);var v=p.substring(0,1),g=p.length>0&&(" "===v||" "===v);t&&(p=p.trim());var b=i?/[^\S ]/g:/[\xA0\s]/g;if(this.tribute.hasTrailingSpace=b.test(p),!g&&(e||!b.test(p)))return{mentionPosition:m,mentionText:p,mentionSelectedElement:o,mentionSelectedPath:u,mentionSelectedOffset:l,mentionTriggerChar:f}}}}},{key:"lastIndexWithLeadingSpace",value:function(e,t){for(var n=e.split("").reverse().join(""),i=-1,r=0,o=e.length;r<o;r++){for(var u=r===e.length-1,l=/\s/.test(n[r+1]),s=!0,a=t.length-1;a>=0;a--)if(t[a]!==n[r-a]){s=!1;break}if(s&&(u||l)){i=e.length-1-r;break}}return i}},{key:"isContentEditable",value:function(e){return"INPUT"!==e.nodeName&&"TEXTAREA"!==e.nodeName}},{key:"isMenuOffScreen",value:function(e,t){var n=window.innerWidth,i=window.innerHeight,r=document.documentElement,o=(window.pageXOffset||r.scrollLeft)-(r.clientLeft||0),u=(window.pageYOffset||r.scrollTop)-(r.clientTop||0),l="number"==typeof e.top?e.top:u+i-e.bottom-t.height,s="number"==typeof e.right?e.right:e.left+t.width,a="number"==typeof e.bottom?e.bottom:e.top+t.height,c="number"==typeof e.left?e.left:o+n-e.right-t.width;return{top:l<Math.floor(u),right:s>Math.ceil(o+n),bottom:a>Math.ceil(u+i),left:c<Math.floor(o)}}},{key:"getMenuDimensions",value:function(){var e={width:null,height:null};return this.tribute.menu.style.cssText="top: 0px;\n                                 left: 0px;\n                                 position: fixed;\n                                 display: block;\n                                 visibility; hidden;",e.width=this.tribute.menu.offsetWidth,e.height=this.tribute.menu.offsetHeight,this.tribute.menu.style.cssText="display: none;",e}},{key:"getTextAreaOrInputUnderlinePosition",value:function(e,t,n){var i=null!==window.mozInnerScreenX,r=this.getDocument().createElement("div");r.id="input-textarea-caret-position-mirror-div",this.getDocument().body.appendChild(r);var o=r.style,u=window.getComputedStyle?getComputedStyle(e):e.currentStyle;o.whiteSpace="pre-wrap","INPUT"!==e.nodeName&&(o.wordWrap="break-word"),o.position="absolute",o.visibility="hidden",["direction","boxSizing","width","height","overflowX","overflowY","borderTopWidth","borderRightWidth","borderBottomWidth","borderLeftWidth","paddingTop","paddingRight","paddingBottom","paddingLeft","fontStyle","fontVariant","fontWeight","fontStretch","fontSize","fontSizeAdjust","lineHeight","fontFamily","textAlign","textTransform","textIndent","textDecoration","letterSpacing","wordSpacing"].forEach((function(e){o[e]=u[e]})),i?(o.width="".concat(parseInt(u.width)-2,"px"),e.scrollHeight>parseInt(u.height)&&(o.overflowY="scroll")):o.overflow="hidden",r.textContent=e.value.substring(0,t),"INPUT"===e.nodeName&&(r.textContent=r.textContent.replace(/\s/g," "));var l=this.getDocument().createElement("span");l.textContent=e.value.substring(t)||".",r.appendChild(l);var s=e.getBoundingClientRect(),a=document.documentElement,c=(window.pageXOffset||a.scrollLeft)-(a.clientLeft||0),h=(window.pageYOffset||a.scrollTop)-(a.clientTop||0),d=0,f=0;this.menuContainerIsBody&&(d=s.top,f=s.left);var m={top:d+h+l.offsetTop+parseInt(u.borderTopWidth)+parseInt(u.fontSize)-e.scrollTop,left:f+c+l.offsetLeft+parseInt(u.borderLeftWidth)},p=window.innerWidth,v=window.innerHeight,g=this.getMenuDimensions(),b=this.isMenuOffScreen(m,g);b.right&&(m.right=p-m.left,m.left="auto");var y=this.tribute.menuContainer?this.tribute.menuContainer.offsetHeight:this.getDocument().body.offsetHeight;if(b.bottom){var w=y-(v-(this.tribute.menuContainer?this.tribute.menuContainer.getBoundingClientRect():this.getDocument().body.getBoundingClientRect()).top);m.bottom=w+(v-s.top-l.offsetTop),m.top="auto"}return(b=this.isMenuOffScreen(m,g)).left&&(m.left=p>g.width?c+p-g.width:c,delete m.right),b.top&&(m.top=v>g.height?h+v-g.height:h,delete m.bottom),this.getDocument().body.removeChild(r),m}},{key:"getContentEditableCaretPosition",value:function(e){var t,n=this.getWindowSelection();(t=this.getDocument().createRange()).setStart(n.anchorNode,e),t.setEnd(n.anchorNode,e),t.collapse(!1);var i=t.getBoundingClientRect(),r=document.documentElement,o=(window.pageXOffset||r.scrollLeft)-(r.clientLeft||0),u=(window.pageYOffset||r.scrollTop)-(r.clientTop||0),l={left:i.left+o,top:i.top+i.height+u},s=window.innerWidth,a=window.innerHeight,c=this.getMenuDimensions(),h=this.isMenuOffScreen(l,c);h.right&&(l.left="auto",l.right=s-i.left-o);var d=this.tribute.menuContainer?this.tribute.menuContainer.offsetHeight:this.getDocument().body.offsetHeight;if(h.bottom){var f=d-(a-(this.tribute.menuContainer?this.tribute.menuContainer.getBoundingClientRect():this.getDocument().body.getBoundingClientRect()).top);l.top="auto",l.bottom=f+(a-i.top)}return(h=this.isMenuOffScreen(l,c)).left&&(l.left=s>c.width?o+s-c.width:o,delete l.right),h.top&&(l.top=a>c.height?u+a-c.height:u,delete l.bottom),this.menuContainerIsBody||(l.left=l.left?l.left-this.tribute.menuContainer.offsetLeft:l.left,l.top=l.top?l.top-this.tribute.menuContainer.offsetTop:l.top),l}},{key:"scrollIntoView",value:function(e){var t,n=this.menu;if(void 0!==n){for(;void 0===t||0===t.height;)if(0===(t=n.getBoundingClientRect()).height&&(void 0===(n=n.childNodes[0])||!n.getBoundingClientRect))return;var i=t.top,r=i+t.height;if(i<0)window.scrollTo(0,window.pageYOffset+t.top-20);else if(r>window.innerHeight){var o=window.pageYOffset+t.top-20;o-window.pageYOffset>100&&(o=window.pageYOffset+100);var u=window.pageYOffset-(window.innerHeight-r);u>o&&(u=o),window.scrollTo(0,u)}}}},{key:"menuContainerIsBody",get:function(){return this.tribute.menuContainer===document.body||!this.tribute.menuContainer}}]),t}(),s=function(){function t(n){e(this,t),this.tribute=n,this.tribute.search=this}return n(t,[{key:"simpleFilter",value:function(e,t){var n=this;return t.filter((function(t){return n.test(e,t)}))}},{key:"test",value:function(e,t){return null!==this.match(e,t)}},{key:"match",value:function(e,t,n){n=n||{};t.length;var i=n.pre||"",r=n.post||"",o=n.caseSensitive&&t||t.toLowerCase();if(n.skip)return{rendered:t,score:0};e=n.caseSensitive&&e||e.toLowerCase();var u=this.traverse(o,e,0,0,[]);return u?{rendered:this.render(t,u.cache,i,r),score:u.score}:null}},{key:"traverse",value:function(e,t,n,i,r){if(t.length===i)return{score:this.calculateScore(r),cache:r.slice()};if(!(e.length===n||t.length-i>e.length-n)){for(var o,u,l=t[i],s=e.indexOf(l,n);s>-1;){if(r.push(s),u=this.traverse(e,t,s+1,i+1,r),r.pop(),!u)return o;(!o||o.score<u.score)&&(o=u),s=e.indexOf(l,s+1)}return o}}},{key:"calculateScore",value:function(e){var t=0,n=1;return e.forEach((function(i,r){r>0&&(e[r-1]+1===i?n+=n+1:n=1),t+=n})),t}},{key:"render",value:function(e,t,n,i){var r=e.substring(0,t[0]);return t.forEach((function(o,u){r+=n+e[o]+i+e.substring(o+1,t[u+1]?t[u+1]:e.length)})),r}},{key:"filter",value:function(e,t,n){var i=this;return n=n||{},t.reduce((function(t,r,o,u){var l=r;n.extract&&((l=n.extract(r))||(l=""));var s=i.match(e,l,n);return null!=s&&(t[t.length]={string:s.rendered,score:s.score,index:o,original:r}),t}),[]).sort((function(e,t){var n=t.score-e.score;return n||e.index-t.index}))}}]),t}();return function(){function t(n){var i,r=this,a=n.values,c=void 0===a?null:a,h=n.iframe,d=void 0===h?null:h,f=n.selectClass,m=void 0===f?"highlight":f,p=n.containerClass,v=void 0===p?"tribute-container":p,g=n.itemClass,b=void 0===g?"":g,y=n.trigger,w=void 0===y?"@":y,T=n.autocompleteMode,C=void 0!==T&&T,S=n.selectTemplate,E=void 0===S?null:S,k=n.menuItemTemplate,x=void 0===k?null:k,M=n.lookup,A=void 0===M?"key":M,L=n.fillAttr,I=void 0===L?"value":L,N=n.collection,O=void 0===N?null:N,D=n.menuContainer,P=void 0===D?null:D,R=n.noMatchTemplate,W=void 0===R?null:R,H=n.requireLeadingSpace,B=void 0===H||H,F=n.allowSpaces,_=void 0!==F&&F,j=n.replaceTextSuffix,Y=void 0===j?null:j,z=n.positionMenu,K=void 0===z||z,q=n.spaceSelectsMatch,U=void 0!==q&&q,X=n.searchOpts,Q=void 0===X?{}:X,V=n.menuItemLimit,G=void 0===V?null:V,J=n.menuShowMinLength,Z=void 0===J?0:J;if(e(this,t),this.autocompleteMode=C,this.menuSelected=0,this.current={},this.inputEvent=!1,this.isActive=!1,this.menuContainer=P,this.allowSpaces=_,this.replaceTextSuffix=Y,this.positionMenu=K,this.hasTrailingSpace=!1,this.spaceSelectsMatch=U,this.autocompleteMode&&(w="",_=!1),c)this.collection=[{trigger:w,iframe:d,selectClass:m,containerClass:v,itemClass:b,selectTemplate:(E||t.defaultSelectTemplate).bind(this),menuItemTemplate:(x||t.defaultMenuItemTemplate).bind(this),noMatchTemplate:(i=W,"string"==typeof i?""===i.trim()?null:i:"function"==typeof i?i.bind(r):W||function(){return"<li>No Match Found!</li>"}.bind(r)),lookup:A,fillAttr:I,values:c,requireLeadingSpace:B,searchOpts:Q,menuItemLimit:G,menuShowMinLength:Z}];else{if(!O)throw new Error("[Tribute] No collection specified.");this.autocompleteMode&&console.warn("Tribute in autocomplete mode does not work for collections"),this.collection=O.map((function(e){return{trigger:e.trigger||w,iframe:e.iframe||d,selectClass:e.selectClass||m,containerClass:e.containerClass||v,itemClass:e.itemClass||b,selectTemplate:(e.selectTemplate||t.defaultSelectTemplate).bind(r),menuItemTemplate:(e.menuItemTemplate||t.defaultMenuItemTemplate).bind(r),noMatchTemplate:function(e){return"string"==typeof e?""===e.trim()?null:e:"function"==typeof e?e.bind(r):W||function(){return"<li>No Match Found!</li>"}.bind(r)}(W),lookup:e.lookup||A,fillAttr:e.fillAttr||I,values:e.values,requireLeadingSpace:e.requireLeadingSpace,searchOpts:e.searchOpts||Q,menuItemLimit:e.menuItemLimit||G,menuShowMinLength:e.menuShowMinLength||Z}}))}new l(this),new o(this),new u(this),new s(this)}return n(t,[{key:"triggers",value:function(){return this.collection.map((function(e){return e.trigger}))}},{key:"attach",value:function(e){if(!e)throw new Error("[Tribute] Must pass in a DOM node or NodeList.");if("undefined"!=typeof jQuery&&e instanceof jQuery&&(e=e.get()),e.constructor===NodeList||e.constructor===HTMLCollection||e.constructor===Array)for(var t=e.length,n=0;n<t;++n)this._attach(e[n]);else this._attach(e)}},{key:"_attach",value:function(e){e.hasAttribute("data-tribute")&&console.warn("Tribute was already bound to "+e.nodeName),this.ensureEditable(e),this.events.bind(e),e.setAttribute("data-tribute",!0)}},{key:"ensureEditable",value:function(e){if(-1===t.inputTypes().indexOf(e.nodeName)){if(!e.contentEditable)throw new Error("[Tribute] Cannot bind to "+e.nodeName);e.contentEditable=!0}}},{key:"createMenu",value:function(e){var t=this.range.getDocument().createElement("div"),n=this.range.getDocument().createElement("ul");return t.className=e,t.appendChild(n),this.menuContainer?this.menuContainer.appendChild(t):this.range.getDocument().body.appendChild(t)}},{key:"showMenuFor",value:function(e,t){var n=this;if(!this.isActive||this.current.element!==e||this.current.mentionText!==this.currentMentionTextSnapshot){this.currentMentionTextSnapshot=this.current.mentionText,this.menu||(this.menu=this.createMenu(this.current.collection.containerClass),e.tributeMenu=this.menu,this.menuEvents.bind(this.menu)),this.isActive=!0,this.menuSelected=0,this.current.mentionText||(this.current.mentionText="");var r=function(e){if(n.isActive){var r=n.search.filter(n.current.mentionText,e,{pre:n.current.collection.searchOpts.pre||"<span>",post:n.current.collection.searchOpts.post||"</span>",skip:n.current.collection.searchOpts.skip,extract:function(e){if("string"==typeof n.current.collection.lookup)return e[n.current.collection.lookup];if("function"==typeof n.current.collection.lookup)return n.current.collection.lookup(e,n.current.mentionText);throw new Error("Invalid lookup attribute, lookup must be string or function.")}});n.current.collection.menuItemLimit&&(r=r.slice(0,n.current.collection.menuItemLimit)),n.current.filteredItems=r;var o=n.menu.querySelector("ul");if(n.range.positionMenuAtCaret(t),!r.length){var u=new CustomEvent("tribute-no-match",{detail:n.menu});return n.current.element.dispatchEvent(u),void("function"==typeof n.current.collection.noMatchTemplate&&!n.current.collection.noMatchTemplate()||!n.current.collection.noMatchTemplate?n.hideMenu():"function"==typeof n.current.collection.noMatchTemplate?o.innerHTML=n.current.collection.noMatchTemplate():o.innerHTML=n.current.collection.noMatchTemplate)}o.innerHTML="";var l=n.range.getDocument().createDocumentFragment();r.forEach((function(e,t){var r=n.range.getDocument().createElement("li");r.setAttribute("data-index",t),r.className=n.current.collection.itemClass,r.addEventListener("mousemove",(function(e){var t=i(n._findLiTarget(e.target),2),r=(t[0],t[1]);0!==e.movementY&&n.events.setActiveLi(r)})),n.menuSelected===t&&r.classList.add(n.current.collection.selectClass),r.innerHTML=n.current.collection.menuItemTemplate(e),l.appendChild(r)})),o.appendChild(l)}};"function"==typeof this.current.collection.values?this.current.collection.values(this.current.mentionText,r):r(this.current.collection.values)}}},{key:"_findLiTarget",value:function(e){if(!e)return[];var t=e.getAttribute("data-index");return t?[e,t]:this._findLiTarget(e.parentNode)}},{key:"showMenuForCollection",value:function(e,t){e!==document.activeElement&&this.placeCaretAtEnd(e),this.current.collection=this.collection[t||0],this.current.externalTrigger=!0,this.current.element=e,e.isContentEditable?this.insertTextAtCursor(this.current.collection.trigger):this.insertAtCaret(e,this.current.collection.trigger),this.showMenuFor(e)}},{key:"placeCaretAtEnd",value:function(e){if(e.focus(),void 0!==window.getSelection&&void 0!==document.createRange){var t=document.createRange();t.selectNodeContents(e),t.collapse(!1);var n=window.getSelection();n.removeAllRanges(),n.addRange(t)}else if(void 0!==document.body.createTextRange){var i=document.body.createTextRange();i.moveToElementText(e),i.collapse(!1),i.select()}}},{key:"insertTextAtCursor",value:function(e){var t,n;(n=(t=window.getSelection()).getRangeAt(0)).deleteContents();var i=document.createTextNode(e);n.insertNode(i),n.selectNodeContents(i),n.collapse(!1),t.removeAllRanges(),t.addRange(n)}},{key:"insertAtCaret",value:function(e,t){var n=e.scrollTop,i=e.selectionStart,r=e.value.substring(0,i),o=e.value.substring(e.selectionEnd,e.value.length);e.value=r+t+o,i+=t.length,e.selectionStart=i,e.selectionEnd=i,e.focus(),e.scrollTop=n}},{key:"hideMenu",value:function(){this.menu&&(this.menu.style.cssText="display: none;",this.isActive=!1,this.menuSelected=0,this.current={})}},{key:"selectItemAtIndex",value:function(e,t){if("number"==typeof(e=parseInt(e))&&!isNaN(e)){var n=this.current.filteredItems[e],i=this.current.collection.selectTemplate(n);null!==i&&this.replaceText(i,t,n)}}},{key:"replaceText",value:function(e,t,n){this.range.replaceTriggerText(e,!0,!0,t,n)}},{key:"_append",value:function(e,t,n){if("function"==typeof e.values)throw new Error("Unable to append to values, as it is a function.");e.values=n?t:e.values.concat(t)}},{key:"append",value:function(e,t,n){var i=parseInt(e);if("number"!=typeof i)throw new Error("please provide an index for the collection to update.");var r=this.collection[i];this._append(r,t,n)}},{key:"appendCurrent",value:function(e,t){if(!this.isActive)throw new Error("No active state. Please use append instead and pass an index.");this._append(this.current.collection,e,t)}},{key:"detach",value:function(e){if(!e)throw new Error("[Tribute] Must pass in a DOM node or NodeList.");if("undefined"!=typeof jQuery&&e instanceof jQuery&&(e=e.get()),e.constructor===NodeList||e.constructor===HTMLCollection||e.constructor===Array)for(var t=e.length,n=0;n<t;++n)this._detach(e[n]);else this._detach(e)}},{key:"_detach",value:function(e){var t=this;this.events.unbind(e),e.tributeMenu&&this.menuEvents.unbind(e.tributeMenu),setTimeout((function(){e.removeAttribute("data-tribute"),t.isActive=!1,e.tributeMenu&&e.tributeMenu.remove()}))}},{key:"isActive",get:function(){return this._isActive},set:function(e){if(this._isActive!=e&&(this._isActive=e,this.current.element)){var t=new CustomEvent("tribute-active-".concat(e));this.current.element.dispatchEvent(t)}}}],[{key:"defaultSelectTemplate",value:function(e){return void 0===e?"".concat(this.current.collection.trigger).concat(this.current.mentionText):this.range.isContentEditable(this.current.element)?'<span class="tribute-mention">'+(this.current.collection.trigger+e.original[this.current.collection.fillAttr])+"</span>":this.current.collection.trigger+e.original[this.current.collection.fillAttr]}},{key:"defaultMenuItemTemplate",value:function(e){return e.string}},{key:"inputTypes",value:function(){return["TEXTAREA","INPUT"]}}]),t}()}));
+//# sourceMappingURL=tribute.min.js.map
+
+
+/***/ }),
+
 /***/ "./node_modules/v-click-outside/dist/v-click-outside.umd.js":
 /*!******************************************************************!*\
   !*** ./node_modules/v-click-outside/dist/v-click-outside.umd.js ***!
@@ -62722,6 +61239,41 @@ exports.clearImmediate = (typeof self !== "undefined" && self.clearImmediate) ||
 
 !function(e,n){ true?module.exports=n():undefined}(this,function(){var e="__v-click-outside",n="undefined"!=typeof window,t="undefined"!=typeof navigator,i=n&&("ontouchstart"in window||t&&navigator.msMaxTouchPoints>0)?["touchstart"]:["click"];function o(n,t){var o=function(e){var n="function"==typeof e;if(!n&&"object"!=typeof e)throw new Error("v-click-outside: Binding value must be a function or an object");return{handler:n?e:e.handler,middleware:e.middleware||function(e){return e},events:e.events||i,isActive:!(!1===e.isActive)}}(t.value),r=o.handler,d=o.middleware;o.isActive&&(n[e]=o.events.map(function(e){return{event:e,handler:function(e){return function(e){var n=e.el,t=e.event,i=e.handler,o=e.middleware,r=t.path||t.composedPath&&t.composedPath(),d=r?r.indexOf(n)<0:!n.contains(t.target);t.target!==n&&d&&o(t)&&i(t)}({event:e,el:n,handler:r,middleware:d})}}}),n[e].forEach(function(t){var i=t.event,o=t.handler;return setTimeout(function(){n[e]&&document.documentElement.addEventListener(i,o,!1)},0)}))}function r(n){(n[e]||[]).forEach(function(e){return document.documentElement.removeEventListener(e.event,e.handler,!1)}),delete n[e]}var d=n?{bind:o,update:function(e,n){var t=n.value,i=n.oldValue;JSON.stringify(t)!==JSON.stringify(i)&&(r(e),o(e,{value:t}))},unbind:r}:{};return{install:function(e){e.directive("click-outside",d)},directive:d}});
 //# sourceMappingURL=v-click-outside.umd.js.map
+
+
+/***/ }),
+
+/***/ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/AvatarForm.vue?vue&type=template&id=296473e8&":
+/*!*************************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib??vue-loader-options!./resources/js/components/AvatarForm.vue?vue&type=template&id=296473e8& ***!
+  \*************************************************************************************************************************************************************************************************************/
+/*! exports provided: render, staticRenderFns */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "render", function() { return render; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return staticRenderFns; });
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c("div", [
+    _vm.canUpdate
+      ? _c(
+          "form",
+          { attrs: { method: "post", enctype: "multipart/form-data" } },
+          [_c("image-upload", { on: { loaded: _vm.onLoad } })],
+          1
+        )
+      : _vm._e(),
+    _vm._v(" "),
+    _c("img", { attrs: { id: "avatar", src: _vm.avatar, width: "100px" } })
+  ])
+}
+var staticRenderFns = []
+render._withStripped = true
+
 
 
 /***/ }),
@@ -62791,6 +61343,33 @@ var render = function() {
     class: "alert-" + _vm.type,
     attrs: { role: "alert" },
     domProps: { textContent: _vm._s(_vm.body) }
+  })
+}
+var staticRenderFns = []
+render._withStripped = true
+
+
+
+/***/ }),
+
+/***/ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/ImageUpload.vue?vue&type=template&id=e0921fbe&":
+/*!**************************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib??vue-loader-options!./resources/js/components/ImageUpload.vue?vue&type=template&id=e0921fbe& ***!
+  \**************************************************************************************************************************************************************************************************************/
+/*! exports provided: render, staticRenderFns */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "render", function() { return render; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return staticRenderFns; });
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c("input", {
+    attrs: { type: "file", name: "avatar", accept: "image/*" },
+    on: { change: _vm.onImageSelected }
   })
 }
 var staticRenderFns = []
@@ -75444,8 +74023,8 @@ window.Vue.prototype.authorize = function (handler) {
 window.events = new Vue();
 
 window.flash = function (message) {
-  var type = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'success';
-  events.$emit('flash', {
+  var type = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "success";
+  events.$emit("flash", {
     type: type,
     message: message
   });
@@ -75461,10 +74040,11 @@ window.flash = function (message) {
 // files.keys().map(key => Vue.component(key.split('/').pop().split('.')[0], files(key).default))
 
 
-Vue.component('flash', __webpack_require__(/*! ./components/Flash.vue */ "./resources/js/components/Flash.vue")["default"]);
-Vue.component('thread-view', __webpack_require__(/*! ./pages/ThreadView.vue */ "./resources/js/pages/ThreadView.vue")["default"]);
-Vue.component('paginator', __webpack_require__(/*! ./components/Paginator.vue */ "./resources/js/components/Paginator.vue")["default"]);
-Vue.component('user-notifications', __webpack_require__(/*! ./components/UserNotifications.vue */ "./resources/js/components/UserNotifications.vue")["default"]);
+Vue.component("flash", __webpack_require__(/*! ./components/Flash.vue */ "./resources/js/components/Flash.vue")["default"]);
+Vue.component("thread-view", __webpack_require__(/*! ./pages/ThreadView.vue */ "./resources/js/pages/ThreadView.vue")["default"]);
+Vue.component("paginator", __webpack_require__(/*! ./components/Paginator.vue */ "./resources/js/components/Paginator.vue")["default"]);
+Vue.component("user-notifications", __webpack_require__(/*! ./components/UserNotifications.vue */ "./resources/js/components/UserNotifications.vue")["default"]);
+Vue.component("avatar-form", __webpack_require__(/*! ./components/AvatarForm */ "./resources/js/components/AvatarForm.vue")["default"]);
 /**
  * Next, we will create a fresh Vue application instance and attach it to
  * the page. Then, you may begin adding components to this application
@@ -75472,7 +74052,7 @@ Vue.component('user-notifications', __webpack_require__(/*! ./components/UserNot
  */
 
 var app = new Vue({
-  el: '#app'
+  el: "#app"
 });
 
 /***/ }),
@@ -75519,6 +74099,75 @@ window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 //     cluster: process.env.MIX_PUSHER_APP_CLUSTER,
 //     forceTLS: true
 // });
+
+/***/ }),
+
+/***/ "./resources/js/components/AvatarForm.vue":
+/*!************************************************!*\
+  !*** ./resources/js/components/AvatarForm.vue ***!
+  \************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _AvatarForm_vue_vue_type_template_id_296473e8___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./AvatarForm.vue?vue&type=template&id=296473e8& */ "./resources/js/components/AvatarForm.vue?vue&type=template&id=296473e8&");
+/* harmony import */ var _AvatarForm_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./AvatarForm.vue?vue&type=script&lang=js& */ "./resources/js/components/AvatarForm.vue?vue&type=script&lang=js&");
+/* empty/unused harmony star reexport *//* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ "./node_modules/vue-loader/lib/runtime/componentNormalizer.js");
+
+
+
+
+
+/* normalize component */
+
+var component = Object(_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__["default"])(
+  _AvatarForm_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__["default"],
+  _AvatarForm_vue_vue_type_template_id_296473e8___WEBPACK_IMPORTED_MODULE_0__["render"],
+  _AvatarForm_vue_vue_type_template_id_296473e8___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"],
+  false,
+  null,
+  null,
+  null
+  
+)
+
+/* hot reload */
+if (false) { var api; }
+component.options.__file = "resources/js/components/AvatarForm.vue"
+/* harmony default export */ __webpack_exports__["default"] = (component.exports);
+
+/***/ }),
+
+/***/ "./resources/js/components/AvatarForm.vue?vue&type=script&lang=js&":
+/*!*************************************************************************!*\
+  !*** ./resources/js/components/AvatarForm.vue?vue&type=script&lang=js& ***!
+  \*************************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_babel_loader_lib_index_js_ref_4_0_node_modules_vue_loader_lib_index_js_vue_loader_options_AvatarForm_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib??ref--4-0!../../../node_modules/vue-loader/lib??vue-loader-options!./AvatarForm.vue?vue&type=script&lang=js& */ "./node_modules/babel-loader/lib/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/AvatarForm.vue?vue&type=script&lang=js&");
+/* empty/unused harmony star reexport */ /* harmony default export */ __webpack_exports__["default"] = (_node_modules_babel_loader_lib_index_js_ref_4_0_node_modules_vue_loader_lib_index_js_vue_loader_options_AvatarForm_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__["default"]); 
+
+/***/ }),
+
+/***/ "./resources/js/components/AvatarForm.vue?vue&type=template&id=296473e8&":
+/*!*******************************************************************************!*\
+  !*** ./resources/js/components/AvatarForm.vue?vue&type=template&id=296473e8& ***!
+  \*******************************************************************************/
+/*! exports provided: render, staticRenderFns */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_AvatarForm_vue_vue_type_template_id_296473e8___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!../../../node_modules/vue-loader/lib??vue-loader-options!./AvatarForm.vue?vue&type=template&id=296473e8& */ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/AvatarForm.vue?vue&type=template&id=296473e8&");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "render", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_AvatarForm_vue_vue_type_template_id_296473e8___WEBPACK_IMPORTED_MODULE_0__["render"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_AvatarForm_vue_vue_type_template_id_296473e8___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"]; });
+
+
 
 /***/ }),
 
@@ -75691,6 +74340,75 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "render", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_Flash_vue_vue_type_template_id_e4161ed6___WEBPACK_IMPORTED_MODULE_0__["render"]; });
 
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_Flash_vue_vue_type_template_id_e4161ed6___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"]; });
+
+
+
+/***/ }),
+
+/***/ "./resources/js/components/ImageUpload.vue":
+/*!*************************************************!*\
+  !*** ./resources/js/components/ImageUpload.vue ***!
+  \*************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _ImageUpload_vue_vue_type_template_id_e0921fbe___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./ImageUpload.vue?vue&type=template&id=e0921fbe& */ "./resources/js/components/ImageUpload.vue?vue&type=template&id=e0921fbe&");
+/* harmony import */ var _ImageUpload_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./ImageUpload.vue?vue&type=script&lang=js& */ "./resources/js/components/ImageUpload.vue?vue&type=script&lang=js&");
+/* empty/unused harmony star reexport *//* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ "./node_modules/vue-loader/lib/runtime/componentNormalizer.js");
+
+
+
+
+
+/* normalize component */
+
+var component = Object(_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__["default"])(
+  _ImageUpload_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__["default"],
+  _ImageUpload_vue_vue_type_template_id_e0921fbe___WEBPACK_IMPORTED_MODULE_0__["render"],
+  _ImageUpload_vue_vue_type_template_id_e0921fbe___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"],
+  false,
+  null,
+  null,
+  null
+  
+)
+
+/* hot reload */
+if (false) { var api; }
+component.options.__file = "resources/js/components/ImageUpload.vue"
+/* harmony default export */ __webpack_exports__["default"] = (component.exports);
+
+/***/ }),
+
+/***/ "./resources/js/components/ImageUpload.vue?vue&type=script&lang=js&":
+/*!**************************************************************************!*\
+  !*** ./resources/js/components/ImageUpload.vue?vue&type=script&lang=js& ***!
+  \**************************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_babel_loader_lib_index_js_ref_4_0_node_modules_vue_loader_lib_index_js_vue_loader_options_ImageUpload_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib??ref--4-0!../../../node_modules/vue-loader/lib??vue-loader-options!./ImageUpload.vue?vue&type=script&lang=js& */ "./node_modules/babel-loader/lib/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/ImageUpload.vue?vue&type=script&lang=js&");
+/* empty/unused harmony star reexport */ /* harmony default export */ __webpack_exports__["default"] = (_node_modules_babel_loader_lib_index_js_ref_4_0_node_modules_vue_loader_lib_index_js_vue_loader_options_ImageUpload_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__["default"]); 
+
+/***/ }),
+
+/***/ "./resources/js/components/ImageUpload.vue?vue&type=template&id=e0921fbe&":
+/*!********************************************************************************!*\
+  !*** ./resources/js/components/ImageUpload.vue?vue&type=template&id=e0921fbe& ***!
+  \********************************************************************************/
+/*! exports provided: render, staticRenderFns */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_ImageUpload_vue_vue_type_template_id_e0921fbe___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!../../../node_modules/vue-loader/lib??vue-loader-options!./ImageUpload.vue?vue&type=template&id=e0921fbe& */ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/ImageUpload.vue?vue&type=template&id=e0921fbe&");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "render", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_ImageUpload_vue_vue_type_template_id_e0921fbe___WEBPACK_IMPORTED_MODULE_0__["render"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_ImageUpload_vue_vue_type_template_id_e0921fbe___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"]; });
 
 
 

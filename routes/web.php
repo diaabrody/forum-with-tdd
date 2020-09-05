@@ -46,6 +46,9 @@ Route::get("/profiles/{user:name}/notifications" , 'UserNotificationsController@
 
 Route::get("/api/users" , 'Api\UserController@index');
 
+Route::post('/api/users/{user}/avatar' , 'Api\UserAvatarController@store')
+    ->name('storeAvatar');
+
 
 
 Auth::routes();
